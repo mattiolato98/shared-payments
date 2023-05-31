@@ -117,7 +117,7 @@
                 android:id="@+id/sign_in_button"
                 android:paddingHorizontal="40dp"
                 android:paddingVertical="14dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="30dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/sign_in_title"
@@ -125,10 +125,12 @@
                 android:textAllCaps="false" />
             <TextView
                 android:id="@+id/to_sign_up"
-                android:layout_width="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="30dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
                 android:text="@string/go_to_sign_up"
-                android:layout_marginTop="10dp"
                 android:linksClickable="true"/>
         </LinearLayout>
     </ScrollView>
