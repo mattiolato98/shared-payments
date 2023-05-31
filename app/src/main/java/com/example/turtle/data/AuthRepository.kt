@@ -1,5 +1,6 @@
 package com.example.turtle.data
 
+import android.util.Log
 import com.example.turtle.ui.auth.AuthResult
 import com.example.turtle.ui.auth.UserData
 import com.google.firebase.auth.AuthCredential
@@ -12,19 +13,11 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
+const val TAG = "AUTH"
+
+
 class AuthRepository {
     private val auth = Firebase.auth
-
-    companion object {
-        private var instance: AuthRepository? = null
-
-        fun getInstance(): AuthRepository {
-            if (instance == null) {
-                instance = AuthRepository()
-            }
-            return instance!!
-        }
-    }
 
     suspend fun signInWithGoogle(googleCredentials: AuthCredential): AuthResult {
         return try {
@@ -73,6 +66,23 @@ class AuthRepository {
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             buildAuthResult(formErrorMsg = "Invalid credentials.")
+        }
+    }
+
+    fun getSignedInUser(): UserData? = auth.currentUser?.run {
+        UserData(
+            userId = uid,
+            username = displayName,
+            profilePictureUrl = photoUrl?.toString()
+        )
+    }
+
+    fun signOut() {
+        try {
+            auth.signOut()
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+            if (e is CancellationException) throw e
         }
     }
 
