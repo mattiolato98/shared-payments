@@ -122,8 +122,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/sign_up_title"
                 android:textSize="16sp"
-                android:textAllCaps="false"
-                android:enabled="false"/>
+                android:textAllCaps="false" />
             <TextView
                 android:id="@+id/to_sign_in"
                 android:layout_width="wrap_content"
