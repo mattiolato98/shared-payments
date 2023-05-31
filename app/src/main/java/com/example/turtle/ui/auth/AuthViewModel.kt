@@ -33,6 +33,10 @@ open class AuthViewModel: ViewModel() {
         onAuthResult(result)
     }
 
+    fun getSignedInUser(): UserData? {
+        return authRepository.getSignedInUser()
+    }
+
     private fun onStartAuth() {
         _state.update { it.copy(
             isLoading = true
