@@ -20,10 +20,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -37,8 +34,6 @@ abstract class BaseAuthFragment: Fragment() {
     abstract var progressBar: ProgressBar
     abstract var googleButton: Button
 
-
-    lateinit var auth: FirebaseAuth
     val viewModel: AuthViewModel by viewModels()
     private lateinit var oneTapSignUpLauncher: ActivityResultLauncher<IntentSenderRequest>
     private lateinit var oneTapClient: SignInClient
@@ -47,7 +42,6 @@ abstract class BaseAuthFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         oneTapClient = Identity.getSignInClient(requireActivity())
 
-        auth = Firebase.auth
         firebaseAuthUiClient = FirebaseAuthUiClient(
             context = requireContext(),
             oneTapClient = Identity.getSignInClient(requireContext())
