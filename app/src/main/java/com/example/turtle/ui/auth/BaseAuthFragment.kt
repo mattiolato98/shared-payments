@@ -10,7 +10,6 @@ import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -65,12 +64,18 @@ abstract class BaseAuthFragment: Fragment() {
             }
         }
 
+        collectLifecycleFlow(viewModel.state) { state ->
+            checkState(state)
+        }
+
         super.onViewCreated(view, savedInstanceState)
     }
 
-    fun checkState(state: AuthState) {
-        if (state.isSignInSuccessful) {
-            startMain()
+    private fun checkState(state: AuthState) {
+        if (state.isLoading) showProgressBar() else hideProgressBar()
+
+        if (state.isUserLoggedIn) {
+            startActivityMain()
         } else {
             fieldEmailLayout.error = state.emailError
             fieldPasswordLayout.error = state.passwordError
@@ -85,19 +90,7 @@ abstract class BaseAuthFragment: Fragment() {
         }
     }
 
-    fun initUiListeners() {
-        googleButton.setOnClickListener{ launchGoogleSignIn() }
-    }
-
-    fun showProgressBar() {
-        progressBar.visibility = View.VISIBLE
-    }
-
-    fun hideProgressBar() {
-        progressBar.visibility = View.INVISIBLE
-    }
-
-    private fun startMain() {
+    private fun startActivityMain() {
         val intent = Intent(context, MainActivity::class.java)
         startActivity(intent)
         requireActivity().finish()
@@ -112,6 +105,18 @@ abstract class BaseAuthFragment: Fragment() {
             )
             hideProgressBar()
         }
+    }
+
+    fun initUiListeners() {
+        googleButton.setOnClickListener{ launchGoogleSignIn() }
+    }
+
+    private fun showProgressBar() {
+        progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideProgressBar() {
+        progressBar.visibility = View.INVISIBLE
     }
 }
 
