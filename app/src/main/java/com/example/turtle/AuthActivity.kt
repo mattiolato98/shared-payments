@@ -3,24 +3,21 @@ package com.example.turtle
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.turtle.databinding.ActivitySigningBinding
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.identity.SignInClient
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.example.turtle.ui.auth.AuthViewModel
+
 
 class AuthActivity: AppCompatActivity() {
     private lateinit var binding: ActivitySigningBinding
-    private lateinit var auth: FirebaseAuth
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        auth = Firebase.auth
-        if (auth.currentUser != null) {
-            startMain()
+        if (viewModel.getSignedInUser() != null) {
+            startActivityMain()
         } else {
             setTheme(R.style.Theme_Turtle)
 
