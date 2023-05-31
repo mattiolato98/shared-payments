@@ -43,23 +43,14 @@ class SignInFragment: BaseAuthFragment() {
 
         with(binding) {
             signInButton.setOnClickListener { signInWithEmailAndPassword() }
-
             toSignUp.setOnClickListener { navigateToSignUp() }
-        }
-
-        collectLifecycleFlow(viewModel.state) { state ->
-            checkState(state)
         }
     }
 
     private fun signInWithEmailAndPassword() {
-        showProgressBar()
-
         val email = fieldEmail.text.toString()
         val password = fieldPassword.text.toString()
-
         viewModel.signInWithEmailAndPassword(email, password)
-        Thread.sleep(5000L)
     }
 
     private fun navigateToSignUp() {
