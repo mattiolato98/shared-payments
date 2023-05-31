@@ -8,7 +8,6 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
-import com.example.turtle.R
 import com.example.turtle.databinding.FragmentSignUpBinding
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -43,22 +42,20 @@ class SignUpFragment: BaseAuthFragment() {
         initUiListeners()
 
         with(binding) {
-            signUpButton.setOnClickListener {
-                val email = fieldEmail.text.toString()
-                val password = fieldPassword.text.toString()
-                viewModel.signUpWithEmailAndPassword(email, password)
-            }
-
-            toSignIn.setOnClickListener { toSignIn() }
-        }
-
-        collectLifecycleFlow(viewModel.state) { state ->
-            checkState(state)
+            signUpButton.setOnClickListener { signUpWithEmailAndPassword() }
+            toSignIn.setOnClickListener { navigateToSignIn() }
         }
     }
 
-    private fun toSignIn() {
-        findNavController().navigate(R.id.navigation_sign_in)
+    private fun signUpWithEmailAndPassword() {
+        val email = fieldEmail.text.toString()
+        val password = fieldPassword.text.toString()
+        viewModel.signUpWithEmailAndPassword(email, password)
+    }
+
+    private fun navigateToSignIn() {
+        val action = SignUpFragmentDirections.navigateToSignIn()
+        findNavController().navigate(action)
     }
 
     private fun initUiComponents() {
