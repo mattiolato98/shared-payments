@@ -37,7 +37,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
 
-        <item name="errorTextColor">@color/red</item>
+        <item name="errorTextColor">@color/bittersweet_002</item>
         <item name="textFillColor">@color/dark_001</item>
         <item name="dividerColor">@color/light_dark_001</item>
     </style>
