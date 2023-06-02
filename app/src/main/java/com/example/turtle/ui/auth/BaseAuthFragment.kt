@@ -88,8 +88,10 @@ abstract class BaseAuthFragment: Fragment() {
     }
 
     private fun startActivityMain() {
-        val intent = Intent(context, MainActivity::class.java)
-        startActivity(intent)
+        Intent(context, MainActivity::class.java).also {
+            it.putExtra("user", viewModel.getSignedInUser())
+            startActivity(it)
+        }
         requireActivity().finish()
     }
 
