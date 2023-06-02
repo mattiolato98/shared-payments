@@ -2,32 +2,50 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <EditText
-        android:id="@+id/field_title"
-        android:background="@null"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/title"
-        android:imeOptions="flagNoExtractUi"
-        android:maxLines="1"
-        android:textStyle="bold"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        android:padding="16dp">
+        <EditText
+            android:id="@+id/field_title"
+            android:background="@null"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/title"
+            android:imeOptions="flagNoExtractUi"
+            android:maxLines="1"
+            android:textStyle="bold"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    <EditText
-        android:id="@+id/field_description"
-        android:background="@null"
-        android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:gravity="top"
-        android:hint="@string/description"
-        android:imeOptions="flagNoExtractUi"
-        app:layout_constraintTop_toBottomOf="@id/field_title"
-        app:layout_constraintStart_toStartOf="parent" />
+        <EditText
+            android:id="@+id/field_description"
+            android:background="@null"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:gravity="top"
+            android:hint="@string/description"
+            android:imeOptions="flagNoExtractUi"
+            app:layout_constraintTop_toBottomOf="@id/field_title"
+            app:layout_constraintStart_toStartOf="parent" />
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/save_bill_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fabSize="normal"
+        android:src="@drawable/done_material"
+        android:contentDescription="@string/save_bill"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"/>
 
 
 
