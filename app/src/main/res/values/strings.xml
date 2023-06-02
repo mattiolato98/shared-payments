@@ -13,6 +13,7 @@
     <string name="sign_in_with_google">Sign in with Google</string>
     <string name="or">or</string>
     <string name="sign_up_with_google">Sign up with Google</string>
+    <string name="create_new_bill">Create new bill</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
