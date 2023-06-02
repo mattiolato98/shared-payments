@@ -14,7 +14,7 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
         <!-- Customize your theme here. -->
-        <item name="errorTextColor">@color/red</item>
+        <item name="errorTextColor">@color/bittersweet_002</item>
 
         <item name="android:windowBackground">@color/dark_003</item>
         <item name="textFillColor">@color/white</item>
