@@ -14,6 +14,9 @@
     <string name="or">or</string>
     <string name="sign_up_with_google">Sign up with Google</string>
     <string name="create_new_bill">Create new bill</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="new_bill">New Bill</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
