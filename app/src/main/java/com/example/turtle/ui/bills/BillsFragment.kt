@@ -5,22 +5,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.turtle.R
 import com.example.turtle.TAG
 import com.example.turtle.data.Bill
 import com.example.turtle.databinding.FragmentBillsBinding
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
+
 
 class BillsFragment : Fragment() {
 
@@ -43,13 +38,10 @@ class BillsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        billsAdapter = BillsAdapter { item -> onBillClick(item)}
+        billsAdapter = BillsAdapter { item -> navigateToBillDetail(item)}
 
         with(binding) {
-            newBillButton.setOnClickListener {
-                val bill = Bill(title = "prova", description = "provaaa")
-                newBill(bill)
-            }
+            newBillButton.setOnClickListener { navigateToAddBill() }
             billsList.adapter = billsAdapter
 
         }
@@ -57,22 +49,26 @@ class BillsFragment : Fragment() {
         subscribeToRealtimeUpdates()
     }
 
-    private fun onBillClick(bill: Bill) {
+    private fun navigateToAddBill() {
+        val action = BillsFragmentDirections.navigateToAddBill()
+        findNavController().navigate(action)
+    }
 
+//    private fun newBill(bill: Bill) = viewLifecycleOwner.lifecycleScope.launch {
+//        try {
+//            billCollectionRef.add(bill).await()
+//            Toast.makeText(requireContext(), "Bill saved.", Toast.LENGTH_SHORT).show()
+//        } catch (e: Exception) {
+//            Log.e(TAG, e.message.toString())
+//        }
+//    }
+
+    private fun navigateToBillDetail(bill: Bill) {
         val action = BillsFragmentDirections.navigateToBillDetail(
             bill.documentId!!,
             bill.title
         )
-        findNavController().navigate(action, )
-    }
-
-    private fun newBill(bill: Bill) = viewLifecycleOwner.lifecycleScope.launch {
-        try {
-            billCollectionRef.add(bill).await()
-            Toast.makeText(requireContext(), "Bill saved.", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-        }
+        findNavController().navigate(action)
     }
 
     private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
