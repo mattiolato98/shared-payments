@@ -1,6 +1,10 @@
 package com.example.turtle.data
 
+import com.google.firebase.firestore.DocumentId
+
 data class Bill(
-    var title: String,
-    var description: String,
+    @DocumentId
+    var documentId: String? = null,
+    var title: String = "",
+    var description: String = "",
 )
