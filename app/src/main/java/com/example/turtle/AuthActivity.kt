@@ -30,7 +30,6 @@ class AuthActivity: AppCompatActivity() {
 
     private fun startActivityMain() {
         Intent(this, MainActivity::class.java).also {
-            it.putExtra("user", viewModel.getSignedInUser())
             startActivity(it)
         }
         finish()
