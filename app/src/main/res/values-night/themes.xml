@@ -1,4 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="SnackbarStyle" parent="Widget.MaterialComponents.Snackbar">
+        <item name="backgroundTint">@color/brown_002</item>
+    </style>
+
     <!-- Dark application theme. -->
     <style name="Theme.Turtle" parent="Theme.Turtle.Base">
         <!-- Primary brand color. -->
@@ -19,5 +23,7 @@
         <item name="android:windowBackground">@color/dark_003</item>
         <item name="textFillColor">@color/white</item>
         <item name="dividerColor">@color/dark_002</item>
+        <item name="snackbarStyle">@style/SnackbarStyle</item>
+        <item name="materialCardViewStyle">@style/MaterialCardViewStyle</item>
     </style>
 </resources>
