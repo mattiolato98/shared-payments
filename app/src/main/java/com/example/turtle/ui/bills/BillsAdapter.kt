@@ -51,7 +51,11 @@ class BillsAdapter(
         val bill = differ.currentList[position]
         with(holder) {
             billTitle.text = bill.title
-            billDescription.text = bill.description
+            if (bill.description.isNullOrEmpty())
+                billDescription.visibility = View.GONE
+            else {
+                billDescription.text = bill.description
+            }
             itemView.setOnClickListener { listener(bill) }
         }
     }
