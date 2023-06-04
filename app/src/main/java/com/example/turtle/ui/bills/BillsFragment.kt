@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.turtle.TAG
 import com.example.turtle.data.Bill
 import com.example.turtle.databinding.FragmentBillsBinding
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ class BillsFragment : Fragment() {
 
     private lateinit var billsAdapter: BillsAdapter
     private val viewModel: BillsViewModel by viewModels()
-    private val billCollectionRef = Firebase.firestore.collection("bills")
+    private val billCollectionRef = Firebase.firestore.collection("bills").orderBy("createDateTime", Query.Direction.DESCENDING)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,7 +44,6 @@ class BillsFragment : Fragment() {
         with(binding) {
             newBillButton.setOnClickListener { navigateToAddBill() }
             billsList.adapter = billsAdapter
-
         }
 
         subscribeToRealtimeUpdates()
