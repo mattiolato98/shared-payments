@@ -9,7 +9,7 @@ import java.util.Date
 data class Bill(
     @DocumentId
     var documentId: String? = null,
- 
+
     var title: String = "",
     var description: String? = null,
 
