@@ -14,7 +14,8 @@
     <color name="dark_003">#141414</color>
     <color name="light_dark_001">#dedede</color>
     <color name="brown_001">#695657</color>
-    
+    <color name="brown_002">#b08d8e</color>
+
     <!-- Custom colors -->
     <color name="jade_001">#17B978</color>
     <color name="jade_002">#348a53</color>
