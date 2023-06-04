@@ -74,12 +74,13 @@ class AuthRepository {
         }
     }
 
-    fun getSignedInUser(): UserData? = auth.currentUser?.run {
-        UserData(
-            userId = uid,
-            username = displayName,
-            profilePictureUrl = photoUrl?.toString()
-        )
+    suspend fun getSignedInUser(): Profile? = auth.currentUser?.run {
+        val doc = profileCollectionRef.document(uid).get().await()
+        return doc.toObject(Profile::class.java)
+    }
+
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
     }
 
     fun signOut() {
