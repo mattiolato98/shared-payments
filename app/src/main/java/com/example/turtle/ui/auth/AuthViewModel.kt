@@ -3,6 +3,7 @@ package com.example.turtle.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.turtle.data.AuthRepository
+import com.example.turtle.data.Profile
 import com.google.firebase.auth.AuthCredential
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,8 +34,8 @@ open class AuthViewModel: ViewModel() {
         onAuthResult(result)
     }
 
-    fun getSignedInUser(): UserData? {
-        return authRepository.getSignedInUser()
+    fun isUserLoggedIn(): Boolean {
+        return authRepository.isUserLoggedIn()
     }
 
     private fun onStartAuth() {
@@ -46,7 +47,7 @@ open class AuthViewModel: ViewModel() {
     private fun onAuthResult(result: AuthResult) {
         with(result) {
             _state.update { it.copy(
-                isUserLoggedIn = data != null,
+                isUserLoggedIn = isSuccessful,
                 isLoading = false,
                 emailError = emailErrorMessage,
                 passwordError = passwordErrorMessage,
