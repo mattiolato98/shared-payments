@@ -62,4 +62,8 @@
         <item name="snackbarStyle">@style/SnackbarStyle</item>
         <item name="materialCardViewStyle">@style/MaterialCardViewStyle</item>
     </style>
+
+    <style name="Theme.Turtle.Auth" parent="Theme.Turtle">
+        <item name="android:colorBackground">#ffffff</item>
+    </style>
 </resources>
