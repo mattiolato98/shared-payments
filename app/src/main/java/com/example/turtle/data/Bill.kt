@@ -2,13 +2,14 @@ package com.example.turtle.data
 
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
-import java.time.LocalDateTime
-import java.util.Calendar
 import java.util.Date
 
 data class Bill(
     @DocumentId
     var documentId: String? = null,
+
+    var userOwnerId: String? = null,
+    var usersId: List<String>? = null,
 
     var title: String = "",
     var description: String? = null,
