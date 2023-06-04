@@ -7,7 +7,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.turtle.databinding.ActivityAuthBinding
 import com.example.turtle.ui.auth.AuthViewModel
-import com.example.turtle.ui.auth.UserData
 
 
 class AuthActivity: AppCompatActivity() {
@@ -17,10 +16,10 @@ class AuthActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (viewModel.getSignedInUser() != null) {
+        if (viewModel.isUserLoggedIn()) {
             startActivityMain()
         } else {
-            setTheme(R.style.Theme_Turtle)
+            setTheme(R.style.Theme_Turtle_Auth)
 
             binding = ActivityAuthBinding.inflate(layoutInflater)
             setContentView(binding.root)
