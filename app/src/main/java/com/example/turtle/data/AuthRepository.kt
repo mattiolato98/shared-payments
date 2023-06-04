@@ -2,13 +2,13 @@ package com.example.turtle.data
 
 import android.util.Log
 import com.example.turtle.ui.auth.AuthResult
-import com.example.turtle.ui.auth.UserData
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
@@ -18,10 +18,14 @@ const val TAG = "AUTH"
 
 class AuthRepository {
     private val auth = Firebase.auth
+    private val profileCollectionRef = Firebase.firestore.collection("profiles")
+
 
     suspend fun signInWithGoogle(googleCredentials: AuthCredential): AuthResult {
         return try {
             val user = auth.signInWithCredential(googleCredentials).await().user
+            if (!checkIfUserAlreadyExists(user))
+                createProfile(user)
             buildAuthResult(user, null)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -47,6 +51,7 @@ class AuthRepository {
     suspend fun signUpWithEmailAndPassword(email: String, password: String): AuthResult {
         return try {
             val user = auth.createUserWithEmailAndPassword(email, password).await().user
+            createProfile(user)
             buildAuthResult(user)
         } catch (e: FirebaseAuthWeakPasswordException) {
             buildAuthResult(passwordErrorMsg = e.message)
@@ -93,16 +98,28 @@ class AuthRepository {
         formErrorMsg: String? = null
     ): AuthResult {
         return AuthResult(
-            data = user?.run {
-                UserData(
-                    userId = uid,
-                    username = displayName,
-                    profilePictureUrl = photoUrl?.toString()
-                )
-            },
+            isSuccessful = user != null,
             emailErrorMessage = emailErrorMsg,
             passwordErrorMessage = passwordErrorMsg,
             genericFormErrorMessage = formErrorMsg
         )
+    }
+
+    private suspend fun createProfile(user: FirebaseUser?) {
+        user?.run {
+            val profile = Profile(
+                userId = uid,
+                username = displayName,
+                profilePictureUrl = photoUrl?.toString()
+            )
+            profileCollectionRef.add(profile).await()
+        }
+    }
+
+    private suspend fun checkIfUserAlreadyExists(user: FirebaseUser?): Boolean {
+        user?.run {
+            return profileCollectionRef.document(user.uid).get().await().exists()
+        }
+        return false
     }
 }
