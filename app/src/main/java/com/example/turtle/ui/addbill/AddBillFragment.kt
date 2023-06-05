@@ -2,13 +2,10 @@ package com.example.turtle.ui.addbill
 
 import android.os.Bundle
 import android.util.Log
-import android.util.Patterns.EMAIL_ADDRESS
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Button
-import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -17,7 +14,6 @@ import com.example.turtle.R
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddBillBinding
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -91,44 +87,44 @@ class AddBillFragment: Fragment() {
     )
 
     private fun addFriend() = viewLifecycleOwner.lifecycleScope.launch {
-        val text = binding.fieldAddFriend.text.toString().trim()
-        val fieldName = if (EMAIL_ADDRESS.matcher(text).matches()) "email" else "username"
-        val profileDocs = profileCollectionRef.whereEqualTo(fieldName, text).get().await()
+        val friendEmail = binding.fieldAddFriend.text.toString().trim()
+//        val fieldName = if (EMAIL_ADDRESS.matcher(text).matches()) "email" else "username"
+        val profileDocs = profileCollectionRef.whereEqualTo("email", friendEmail).get().await()
 
         if (profileDocs.isEmpty) {
             Snackbar.make(
                 requireView(),
-                "No user matches this ${fieldName}.",
+                "No user matches this email.",
                 Snackbar.LENGTH_SHORT
             ).show()
         } else {
-            if (text == auth.currentUser?.email) {
+            if (friendEmail == auth.currentUser?.email) {
                 Snackbar.make(requireView(), "You cannot add yourself.", Snackbar.LENGTH_SHORT).show()
                 return@launch
             }
-            if (friendAlreadyAdded(text)) {
+            if (friendAlreadyAdded(friendEmail)) {
                 Snackbar.make(requireView(), "Friend already added.", Snackbar.LENGTH_SHORT).show()
                 return@launch
             }
 
             val profile = profileDocs.first().toObject(Profile::class.java)
-            addFriendToLayout(text)
-            friends[text] = profile.userId!!
+            addFriendToLayout(friendEmail)
+            friends[friendEmail] = profile.userId!!
 
             clearAddFriend()
         }
     }
 
     private fun addFriendToLayout(text: String) {
+        showFriendsTitle()
+
         (LayoutInflater.from(requireContext()).inflate(
             R.layout.button_borderless_template,
             null,
             false
         ) as Button).also { btn ->
             btn.text = text
-            btn.setOnClickListener {
-                removeFriend(it)
-            }
+            btn.setOnClickListener { removeFriend(it) }
             binding.friendsLinearLayout.addView(btn)
         }
     }
@@ -147,6 +143,9 @@ class AddBillFragment: Fragment() {
 
         friends.remove(text)
         binding.friendsLinearLayout.removeView(v)
+
+        if (friends.isEmpty())
+            hideFriendsTitle()
     }
 
     private fun fillEmailText(text: CharSequence?) {
@@ -157,6 +156,14 @@ class AddBillFragment: Fragment() {
             binding.buttonAddFriend.visibility = View.GONE
         }
 
+    }
+
+    private fun showFriendsTitle() {
+        binding.friendsTitle.visibility = View.VISIBLE
+    }
+
+    private fun hideFriendsTitle() {
+        binding.friendsTitle.visibility = View.GONE
     }
 
     override fun onDestroyView() {
