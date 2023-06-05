@@ -2,15 +2,24 @@ package com.example.turtle.ui.addbill
 
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns.EMAIL_ADDRESS
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.Toast
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.turtle.R
 import com.example.turtle.data.Bill
+import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddBillBinding
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
@@ -25,7 +34,12 @@ class AddBillFragment: Fragment() {
     private var _binding: FragmentAddBillBinding? = null
     private val binding get() = _binding!!
 
+    private var friends = mutableMapOf<String, String>()
+
     private val billCollectionRef = Firebase.firestore.collection("bills")
+    private val profileCollectionRef = Firebase.firestore.collection("profiles")
+
+    private val auth = Firebase.auth
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,36 +53,110 @@ class AddBillFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.saveBillButton.setOnClickListener{ saveBill() }
+        with(binding) {
+            saveBillButton.setOnClickListener { saveBill() }
+            fieldAddFriend.doOnTextChanged { text, _, _, _ -> fillEmailText(text) }
+            buttonAddFriend.setOnClickListener { addFriend() }
+        }
     }
 
     private fun saveBill() = viewLifecycleOwner.lifecycleScope.launch {
         val title = binding.fieldTitle.text.toString()
-        val description = binding.fieldDescription.text.toString().let {
-            it.ifEmpty { null }
-        }
+        val description = binding.fieldDescription.text.toString().let { it.ifEmpty { null } }
+        val usersId = friends.values + auth.currentUser?.uid!!
 
         if (title.isEmpty()) {
             Snackbar.make(requireView(), "Bill title cannot be empty", Snackbar.LENGTH_SHORT).show()
             return@launch
         }
 
-        val bill = Bill(
-            title = title,
-            description = description,
-        )
-        createBill(bill)
-    }
+        val bill = createBill(title, description, usersId)
 
-    private suspend fun createBill(bill: Bill) {
         try {
-            billCollectionRef.add(bill).await()
+            billCollectionRef.add(bill).await() // TODO: prova a togliere await
             Snackbar.make(requireView(), "Bill saved", Snackbar.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
             if (e is CancellationException) throw e
         }
+
         findNavController().navigateUp()
+    }
+
+    private fun createBill(title: String, description: String?, usersId: List<String>): Bill = Bill(
+        userOwnerId = auth.currentUser?.uid!!,
+        usersId = usersId,
+        title = title,
+        description = description,
+    )
+
+    private fun addFriend() = viewLifecycleOwner.lifecycleScope.launch {
+        val text = binding.fieldAddFriend.text.toString().trim()
+        val fieldName = if (EMAIL_ADDRESS.matcher(text).matches()) "email" else "username"
+        val profileDocs = profileCollectionRef.whereEqualTo(fieldName, text).get().await()
+
+        if (profileDocs.isEmpty) {
+            Snackbar.make(
+                requireView(),
+                "No user matches this ${fieldName}.",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        } else {
+            if (text == auth.currentUser?.email) {
+                Snackbar.make(requireView(), "You cannot add yourself.", Snackbar.LENGTH_SHORT).show()
+                return@launch
+            }
+            if (friendAlreadyAdded(text)) {
+                Snackbar.make(requireView(), "Friend already added.", Snackbar.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val profile = profileDocs.first().toObject(Profile::class.java)
+            addFriendToLayout(text)
+            friends[text] = profile.userId!!
+
+            clearAddFriend()
+        }
+    }
+
+    private fun addFriendToLayout(text: String) {
+        (LayoutInflater.from(requireContext()).inflate(
+            R.layout.button_borderless_template,
+            null,
+            false
+        ) as Button).also { btn ->
+            btn.text = text
+            btn.setOnClickListener {
+                removeFriend(it)
+            }
+            binding.friendsLinearLayout.addView(btn)
+        }
+    }
+
+    private fun friendAlreadyAdded(text: String): Boolean {
+        return friends.containsKey(text)
+    }
+
+    private fun clearAddFriend() {
+        binding.fieldAddFriend.text = null
+        binding.buttonAddFriend.text = null
+    }
+
+    private fun removeFriend(v: View) {
+        val text = (v as Button).text
+
+        friends.remove(text)
+        binding.friendsLinearLayout.removeView(v)
+    }
+
+    private fun fillEmailText(text: CharSequence?) {
+        if (text.toString().isNotEmpty()) {
+            binding.buttonAddFriend.visibility = View.VISIBLE
+            binding.buttonAddFriend.text = "${text.toString()} +"
+        } else {
+            binding.buttonAddFriend.visibility = View.GONE
+        }
+
     }
 
     override fun onDestroyView() {
