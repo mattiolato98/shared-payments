@@ -1,6 +1,7 @@
 package com.example.turtle.data
 
 import android.util.Log
+import android.widget.Toast
 import com.example.turtle.ui.auth.AuthResult
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -24,7 +25,7 @@ class AuthRepository {
     suspend fun signInWithGoogle(googleCredentials: AuthCredential): AuthResult {
         return try {
             val user = auth.signInWithCredential(googleCredentials).await().user
-            if (!checkIfUserAlreadyExists(user))
+            if (!userAlreadyExists(user))
                 createProfile(user)
             buildAuthResult(user, null)
         } catch (e: Exception) {
@@ -117,9 +118,9 @@ class AuthRepository {
         }
     }
 
-    private suspend fun checkIfUserAlreadyExists(user: FirebaseUser?): Boolean {
+    private suspend fun userAlreadyExists(user: FirebaseUser?): Boolean {
         user?.run {
-            return profileCollectionRef.document(user.uid).get().await().exists()
+            return !profileCollectionRef.whereEqualTo("userId", user.uid).get().await().isEmpty
         }
         return false
     }
