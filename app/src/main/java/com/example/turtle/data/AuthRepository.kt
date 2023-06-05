@@ -1,7 +1,6 @@
 package com.example.turtle.data
 
 import android.util.Log
-import android.widget.Toast
 import com.example.turtle.ui.auth.AuthResult
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -111,7 +110,7 @@ class AuthRepository {
         user?.run {
             val profile = Profile(
                 userId = uid,
-                username = displayName,
+                displayName = displayName,
                 email = email,
                 profilePictureUrl = photoUrl?.toString()
             )
