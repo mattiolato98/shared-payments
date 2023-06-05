@@ -8,7 +8,7 @@
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/jade_001</item>
         <item name="colorPrimaryVariant">@color/jade_002</item>
-        <item name="colorOnPrimary">@color/white_smoke_001</item>
+        <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/bittersweet_001</item>
         <item name="colorSecondaryVariant">@color/bittersweet_002</item>

@@ -12,7 +12,7 @@
     </style>
     <style name="AppButtonBorderless" parent="Widget.MaterialComponents.Button">
         <item name="android:outlineProvider">none</item>
-        <item name="backgroundTint">?attr/colorOnSecondary</item>
+        <item name="backgroundTint">?attr/colorOnPrimary</item>
         <item name="rippleColor">?attr/dividerColor</item>
         <item name="android:textColor">?attr/textFillColor</item>
         <item name="textAllCaps">false</item>
@@ -57,11 +57,11 @@
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/jade_002</item>
         <item name="colorPrimaryVariant">@color/jade_001</item>
-        <item name="colorOnPrimary">@color/white_smoke_001</item>
+        <item name="colorOnPrimary">@color/white_smoke_002</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/bittersweet_001</item>
         <item name="colorSecondaryVariant">@color/bittersweet_002</item>
-        <item name="colorOnSecondary">@color/white_smoke_002</item>
+        <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
 
