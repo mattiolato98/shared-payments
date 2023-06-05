@@ -18,6 +18,7 @@
     <string name="description">Description</string>
     <string name="new_bill">New Bill</string>
     <string name="save_bill">Save bill</string>
+    <string name="field_add_friend_hint">Enter friend email or username</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
