@@ -8,8 +8,8 @@ data class Profile (
     @DocumentId
     var documentId: String? = null,
 
-    var userId: String,
-    var username: String? = null,
+    var userId: String? = null,
+    var displayName: String? = null,
     var email: String? = null,
     var profilePictureUrl: String? = null,
 
