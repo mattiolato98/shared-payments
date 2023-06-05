@@ -19,7 +19,7 @@ class AuthActivity: AppCompatActivity() {
         if (viewModel.isUserLoggedIn()) {
             startActivityMain()
         } else {
-            setTheme(R.style.Theme_Turtle_Auth)
+            setTheme(R.style.Theme_Turtle)
 
             binding = ActivityAuthBinding.inflate(layoutInflater)
             setContentView(binding.root)
