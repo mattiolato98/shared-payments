@@ -11,29 +11,35 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:padding="16dp">
-        <EditText
-            android:id="@+id/field_title"
-            android:background="@null"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/field_title_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/title"
-            android:imeOptions="flagNoExtractUi"
-            android:maxLines="1"
-            android:textStyle="bold"
-            android:textAppearance="@style/TextAppearance.AppCompat.Title"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_marginBottom="10dp"
+            app:boxBackgroundMode="outline">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/field_title"
+                android:hint="@string/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textStyle="bold" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <EditText
-            android:id="@+id/field_description"
-            android:background="@null"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/field_description_layout"
             android:layout_width="match_parent"
-            android:layout_height="350dp"
-            android:gravity="top"
-            android:hint="@string/description"
-            android:imeOptions="flagNoExtractUi"
-            app:layout_constraintTop_toBottomOf="@id/field_title"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:boxBackgroundMode="outline">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/field_description"
+                android:gravity="top"
+                android:hint="@string/description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
