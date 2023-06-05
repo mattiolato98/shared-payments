@@ -10,6 +10,7 @@ data class Profile (
 
     var userId: String,
     var username: String? = null,
+    var email: String? = null,
     var profilePictureUrl: String? = null,
 
     @ServerTimestamp

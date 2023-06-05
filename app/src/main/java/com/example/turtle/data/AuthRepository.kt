@@ -112,6 +112,7 @@ class AuthRepository {
             val profile = Profile(
                 userId = uid,
                 username = displayName,
+                email = email,
                 profilePictureUrl = photoUrl?.toString()
             )
             profileCollectionRef.add(profile).await()
