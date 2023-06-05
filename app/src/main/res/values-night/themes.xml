@@ -21,6 +21,8 @@
         <item name="errorTextColor">@color/bittersweet_002</item>
 
         <item name="android:windowBackground">@color/dark_003</item>
+        <item name="colorBackgroundFloating">@color/dark_003</item>
+
         <item name="textFillColor">@color/white</item>
         <item name="dividerColor">@color/dark_002</item>
         <item name="snackbarStyle">@style/SnackbarStyle</item>
