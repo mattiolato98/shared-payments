@@ -24,6 +24,7 @@
     <string name="amount">Amount</string>
     <string name="date">Date</string>
     <string name="new_expense">New Expense</string>
+    <string name="paid_by">Paid by</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
