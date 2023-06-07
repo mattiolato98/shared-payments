@@ -30,7 +30,7 @@ class AddBillFragment: Fragment() {
     private var _binding: FragmentAddBillBinding? = null
     private val binding get() = _binding!!
 
-    private var friends = mutableMapOf<String, String>()
+    private var friends = mutableMapOf<String, Profile>()
 
     private val billCollectionRef = Firebase.firestore.collection("bills")
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
@@ -57,16 +57,19 @@ class AddBillFragment: Fragment() {
     }
 
     private fun saveBill() = viewLifecycleOwner.lifecycleScope.launch {
+        val profileDocs = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await()
+        val currentUserProfile = profileDocs.first().toObject(Profile::class.java)
+
         val title = binding.fieldTitle.text.toString()
         val description = binding.fieldDescription.text.toString().let { it.ifEmpty { null } }
-        val usersId = friends.values + auth.currentUser?.uid!!
+        val users = friends.values + currentUserProfile
 
         if (title.isEmpty()) {
             Snackbar.make(requireView(), "Bill title cannot be empty", Snackbar.LENGTH_SHORT).show()
             return@launch
         }
 
-        val bill = createBill(title, description, usersId)
+        val bill = createBill(title, description, users)
 
         try {
             billCollectionRef.add(bill).await() // TODO: prova a togliere await
@@ -79,9 +82,9 @@ class AddBillFragment: Fragment() {
         findNavController().navigateUp()
     }
 
-    private fun createBill(title: String, description: String?, usersId: List<String>): Bill = Bill(
+    private fun createBill(title: String, description: String?, users: List<Profile>): Bill = Bill(
         userOwnerId = auth.currentUser?.uid!!,
-        usersId = usersId,
+        users = users,
         title = title,
         description = description,
     )
@@ -109,7 +112,7 @@ class AddBillFragment: Fragment() {
 
             val profile = profileDocs.first().toObject(Profile::class.java)
             addFriendToLayout(friendEmail)
-            friends[friendEmail] = profile.userId!!
+            friends[friendEmail] = profile
 
             clearAddFriend()
         }
