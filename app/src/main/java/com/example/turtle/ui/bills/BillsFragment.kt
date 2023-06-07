@@ -25,7 +25,11 @@ class BillsFragment : Fragment() {
 
     private lateinit var billsAdapter: BillsAdapter
     private val viewModel: BillsViewModel by viewModels()
-    private val billCollectionRef = Firebase.firestore.collection("bills").orderBy("createDateTime", Query.Direction.DESCENDING)
+
+    private val auth = Firebase.auth
+
+    private val billCollectionRef = Firebase.firestore.collection("bills")
+    private val profileCollectionRef = Firebase.firestore.collection("profiles")
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,7 +76,14 @@ class BillsFragment : Fragment() {
     }
 
     private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
-        billCollectionRef.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+        val currentUserProfileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
+        val currentUserProfile = currentUserProfileDoc.toObject(Profile::class.java)
+
+        val billQuery =  billCollectionRef
+            .whereArrayContains("users", currentUserProfile)
+            .orderBy("createDateTime", Query.Direction.DESCENDING)
+
+        billQuery.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
             firebaseFirestoreException?.let {
                 Log.e(TAG, it.message.toString())
             }
