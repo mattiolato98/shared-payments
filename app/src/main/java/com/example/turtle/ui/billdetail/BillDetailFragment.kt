@@ -43,6 +43,7 @@ class BillDetailFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setUpBill(args.billId)
+        binding.newExpenseButton.setOnClickListener { navigateToAddExpense() }
     }
 
     private fun setUpBill(billId: String) = viewLifecycleOwner.lifecycleScope.launch {
@@ -56,13 +57,17 @@ class BillDetailFragment: Fragment() {
         }
 
         bill?.let {
-            binding.billTitle.text = it.title
-            binding.billDescription.text = it.description
+
         } ?:let {
             Toast.makeText(requireContext(), "Unable to retrieve bill. Try again later.", Toast.LENGTH_SHORT).show()
             val action = BillDetailFragmentDirections.navigateToBills()
             findNavController().navigate(action)
         }
+    }
+
+    private fun navigateToAddExpense() {
+        val action = BillDetailFragmentDirections.navigateToAddExpense()
+        findNavController().navigate(action)
     }
 
     override fun onDestroyView() {
