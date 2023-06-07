@@ -81,19 +81,20 @@ class BillsAdapter(
         }
 
         bill.users?.let { users ->
-            bill.users!!.forEachIndexed { index, profile ->
-                (holder.profileImages[index].parent as CardView).visibility = View.VISIBLE
-                if (profile.profilePictureUrl != null) {
-                    Picasso.get().load(profile.profilePictureUrl)
-                        .resize(60, 60)
-                        .centerCrop()
-                        .into(holder.profileImages[index])
-                } else {
-                    holder.profileImages[index].setImageResource(R.drawable.profile_material)
-                }
+            run breaker@ {
+                bill.users!!.forEachIndexed { index, profile ->
+                    (holder.profileImages[index].parent as CardView).visibility = View.VISIBLE
+                    if (profile.profilePictureUrl != null) {
+                        Picasso.get().load(profile.profilePictureUrl)
+                            .resize(60, 60)
+                            .centerCrop()
+                            .into(holder.profileImages[index])
+                    } else {
+                        holder.profileImages[index].setImageResource(R.drawable.profile_material)
+                    }
 
-                if (index == 4)
-                    return@forEachIndexed
+                    if (index == 4) return@breaker
+                }
             }
 
             (users.size - 5).coerceAtLeast(0).also { extra_users ->
