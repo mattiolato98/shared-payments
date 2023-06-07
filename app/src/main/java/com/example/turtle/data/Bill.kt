@@ -9,7 +9,7 @@ data class Bill(
     var documentId: String? = null,
 
     var userOwnerId: String? = null,
-    var usersId: List<String>? = null,
+    var users: List<Profile>? = null,
 
     var title: String = "",
     var description: String? = null,
