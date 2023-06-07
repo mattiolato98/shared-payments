@@ -20,6 +20,10 @@
     <string name="save_bill">Save bill</string>
     <string name="field_add_friend_hint">Enter friend email</string>
     <string name="friends">Friends</string>
+    <string name="add_new_expense">Add new expense</string>
+    <string name="amount">Amount</string>
+    <string name="date">Date</string>
+    <string name="new_expense">New Expense</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
