@@ -47,7 +47,11 @@
             app:destination="@id/navigation_bills" />
         <action
             android:id="@+id/navigate_to_add_expense"
-            app:destination="@id/navigation_add_expense" />
+            app:destination="@id/navigation_add_expense">
+            <argument
+                android:name="billId"
+                app:argType="string" />
+        </action>
     </fragment>
 
     <fragment
@@ -65,6 +69,9 @@
         android:name="com.example.turtle.ui.addexpense.AddExpenseFragment"
         android:label="@string/new_expense"
         tools:layout="@layout/fragment_add_expense">
+        <argument
+            android:name="billId"
+            app:argType="string" />
         <action
             android:id="@id/navigate_to_bill_detail"
             app:destination="@id/navigation_bill_detail" />
