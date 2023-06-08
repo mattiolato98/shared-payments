@@ -94,6 +94,11 @@ class AddExpenseFragment: Fragment() {
             }
         }
 
+        if (userPaidForIds.isEmpty()) {
+            Snackbar.make(requireView(), "You must pay for at least one participant.", Snackbar.LENGTH_SHORT).show()
+            return@launch
+        }
+
         val expense = createExpense(title, amount, date, userPayingId, userPaidForIds)
 
         try {
