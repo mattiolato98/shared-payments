@@ -15,4 +15,8 @@ data class Profile (
 
     @ServerTimestamp
     var createDateTime: Date? = null,
-)
+) {
+    override fun toString(): String {
+        return email.toString();
+    }
+}
