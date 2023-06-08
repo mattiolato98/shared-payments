@@ -72,7 +72,7 @@ class AddBillFragment: Fragment() {
         val bill = createBill(title, description, users)
 
         try {
-            billCollectionRef.add(bill).await() // TODO: prova a togliere await
+            billCollectionRef.add(bill).await()
             Snackbar.make(requireView(), "Bill saved", Snackbar.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
