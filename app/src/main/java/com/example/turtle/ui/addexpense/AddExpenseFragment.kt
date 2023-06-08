@@ -9,18 +9,29 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import androidx.core.view.size
+import androidx.core.util.forEach
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.data.Bill
+import com.example.turtle.data.Expense
+import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddExpenseBinding
-import com.example.turtle.ui.billdetail.TAG
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+
+const val TAG = "ADD_EXPENSE"
+
 
 class AddExpenseFragment: Fragment() {
 
@@ -29,6 +40,7 @@ class AddExpenseFragment: Fragment() {
 
     private val calendar: Calendar = Calendar.getInstance()
     private val args: AddExpenseFragmentArgs by navArgs()
+    private lateinit var bill: Bill
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
     override fun onCreateView(
@@ -43,13 +55,71 @@ class AddExpenseFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUp(args.billId)
+
+        binding.saveExpenseButton.setOnClickListener { saveExpense() }
     }
 
-    private fun setUpUserPayingSpinner(users: List<String>) {
-        val dataAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, users)
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.userPayingSpinner.adapter = dataAdapter
+    private fun saveExpense() = viewLifecycleOwner.lifecycleScope.launch {
+        val title = binding.fieldTitle.text.toString()
+
+        if (title.isEmpty()) {
+            Snackbar.make(requireView(), "Title cannot be empty.", Snackbar.LENGTH_SHORT).show()
+            return@launch
+        }
+
+        val amountString = binding.fieldAmount.text.toString()
+        val amount = if (amountString.isNotEmpty()) BigDecimal(amountString) else BigDecimal.ZERO
+
+        if (amount <= BigDecimal.ZERO) {
+            Snackbar.make(requireView(), "Please insert a positive amount.", Snackbar.LENGTH_SHORT).show()
+            return@launch
+        }
+
+        val dateFormat = SimpleDateFormat("yyyy/MM/dd hh:mm:ss", Locale.US)
+        val date = dateFormat.parse(
+            "${binding.fieldDate.text.toString()} " +
+                    "${calendar.get(Calendar.HOUR_OF_DAY)}:" +
+                    "${calendar.get(Calendar.MINUTE)}:" +
+                    "${calendar.get(Calendar.SECOND)}"
+        )!!
+
+        val userPayingId = (binding.userPayingSpinner.selectedItem as Profile).userId!!
+
+        val userPaidForIds = mutableListOf<String>()
+        binding.usersPaidForList.checkedItemPositions.forEach { key, value ->
+            if (value) {
+                userPaidForIds.add(
+                    (binding.usersPaidForList.getItemAtPosition(key) as Profile).userId!!
+                )
+            }
+        }
+
+        val expense = createExpense(title, amount, date, userPayingId, userPaidForIds)
+
+        try {
+            billCollectionRef.document(bill.documentId!!).collection("expenses").add(expense).await()
+            Snackbar.make(requireView(), "Expense saved", Snackbar.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+            if (e is CancellationException) throw e
+        }
+
+        findNavController().navigateUp()
     }
+
+    private fun createExpense(
+        title: String,
+        amount: BigDecimal,
+        date: Date,
+        userPayingId: String,
+        userPaidForIds: List<String>
+    ): Expense = Expense (
+        title = title,
+        bigDecimalAmount = amount,
+        date = date,
+        userPayingId = userPayingId,
+        userPaidForIds = userPaidForIds
+    )
 
     private fun setUpDatePickerDialog() {
         updateDateInputField()
@@ -77,7 +147,17 @@ class AddExpenseFragment: Fragment() {
         binding.fieldDate.setText(dateFormat.format(calendar.time))
     }
 
-    private fun setUpUsersPaidForListView(users: List<String>) {
+    private fun setUpUserPayingSpinner(users: List<Profile>) {
+        val dataAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            users
+        )
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.userPayingSpinner.adapter = dataAdapter
+    }
+
+    private fun setUpUsersPaidForListView(users: List<Profile>) {
         val dataAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_multiple_choice, users)
         binding.usersPaidForList.choiceMode = ListView.CHOICE_MODE_MULTIPLE
         binding.usersPaidForList.adapter = dataAdapter
@@ -87,20 +167,10 @@ class AddExpenseFragment: Fragment() {
         }
     }
 
-    private fun getBillUsers(bill: Bill): MutableList<String> {
-        val users = mutableListOf<String>()
-
-        for (user in bill.users!!) {
-            users.add(user.email.toString())
-        }
-
-        return users
-    }
-
     private fun setUp(billId: String) {
         try {
             billCollectionRef.document(billId).get().addOnSuccessListener {
-                val bill = it.toObject(Bill::class.java)!!
+                bill = it.toObject(Bill::class.java)!!
 
                 val users = getBillUsers(bill)
 
@@ -113,6 +183,8 @@ class AddExpenseFragment: Fragment() {
             if (e is CancellationException) throw e
         }
     }
+
+    private fun getBillUsers(bill: Bill): List<Profile> = bill.users!!
 
     override fun onDestroyView() {
         super.onDestroyView()
