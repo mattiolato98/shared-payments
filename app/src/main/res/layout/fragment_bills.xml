@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:padding="10dp" />
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="7dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/new_bill_button"
