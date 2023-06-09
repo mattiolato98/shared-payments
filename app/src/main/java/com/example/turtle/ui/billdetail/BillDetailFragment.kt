@@ -5,13 +5,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.data.Bill
+import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentBillDetailBinding
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -24,6 +28,8 @@ class BillDetailFragment: Fragment() {
 
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var expensesAdapter: ExpensesAdapter
 
     private val args: BillDetailFragmentArgs by navArgs()
     private lateinit var bill: Bill
@@ -41,6 +47,8 @@ class BillDetailFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        (activity as AppCompatActivity).supportActionBar?.elevation = 0f
+
         getBill(args.billId)
         binding.newExpenseButton.setOnClickListener { navigateToAddExpense() }
     }
@@ -53,6 +61,29 @@ class BillDetailFragment: Fragment() {
             Log.e(TAG, e.message.toString())
             if (e is CancellationException) throw e
             return@launch
+        }
+
+        expensesAdapter = ExpensesAdapter(bill)
+        binding.expensesList.adapter = expensesAdapter
+
+        subscribeToRealtimeUpdates()
+    }
+
+    private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
+        val expenseQuery = billCollectionRef.document(args.billId)
+            .collection("expenses")
+            .orderBy("date", Query.Direction.DESCENDING)
+
+        expenseQuery.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+            firebaseFirestoreException?.let {
+                Log.e(TAG, it.message.toString())
+            }
+            querySnapshot?.let {
+                val expensesList = querySnapshot.documents.map { doc ->
+                    doc.toObject(Expense::class.java)
+                }
+                expensesAdapter.differ.submitList(expensesList)
+            }
         }
     }
 
