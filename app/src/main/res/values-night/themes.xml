@@ -8,20 +8,21 @@
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/jade_001</item>
         <item name="colorPrimaryVariant">@color/jade_002</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorOnPrimary">@color/white_smoke_002</item>
+        <item name="colorPrimaryDark">@color/dark_004</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/bittersweet_001</item>
         <item name="colorSecondaryVariant">@color/bittersweet_002</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@color/dark_004</item>
         <item name="android:windowLightStatusBar">false</item>
         <!-- Customize your theme here. -->
         <item name="errorTextColor">@color/bittersweet_002</item>
 
         <item name="android:windowBackground">@color/dark_003</item>
-        <item name="colorBackgroundFloating">@color/dark_003</item>
+        <item name="colorBackgroundFloating">@color/black</item>
 
         <item name="textFillColor">@color/white</item>
         <item name="dividerColor">@color/dark_002</item>
