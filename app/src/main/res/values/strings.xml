@@ -26,6 +26,9 @@
     <string name="new_expense">New Expense</string>
     <string name="paid_by">Paid by</string>
     <string name="save_expense">Save Expense</string>
+    <string name="decimal_zero">0.00</string>
+    <string name="my_total">My total</string>
+    <string name="group_total">Group total</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
