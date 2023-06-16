@@ -20,7 +20,8 @@ import java.util.Locale
 import kotlin.math.exp
 
 class ExpensesAdapter(
-    private val bill: Bill
+    private val bill: Bill,
+    private val setTotals: (Unit) -> Unit
 ): RecyclerView.Adapter<ExpensesAdapter.ExpensesViewHolder>() {
 
     inner class ExpensesViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -75,6 +76,7 @@ class ExpensesAdapter(
             expenseDate.text = dateFormat.format(expense.date!!)
         }
 
+        setTotals(Unit)
     }
 
     override fun getItemCount(): Int = differ.currentList.size
