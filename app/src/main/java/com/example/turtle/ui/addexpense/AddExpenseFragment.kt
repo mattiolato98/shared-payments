@@ -19,6 +19,7 @@ import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddExpenseBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
@@ -41,6 +42,7 @@ class AddExpenseFragment: Fragment() {
     private val calendar: Calendar = Calendar.getInstance()
     private val args: AddExpenseFragmentArgs by navArgs()
     private lateinit var bill: Bill
+    private lateinit var expenseCollectionRef: CollectionReference
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
     override fun onCreateView(
@@ -85,24 +87,27 @@ class AddExpenseFragment: Fragment() {
 
         val userPayingId = (binding.userPayingSpinner.selectedItem as Profile).userId!!
 
-        val userPaidForIds = mutableListOf<String>()
-        binding.usersPaidForList.checkedItemPositions.forEach { key, value ->
-            if (value) {
-                userPaidForIds.add(
-                    (binding.usersPaidForList.getItemAtPosition(key) as Profile).userId!!
-                )
-            }
-        }
+        val usersPaidFor = mutableMapOf<String, String>()
 
-        if (userPaidForIds.isEmpty()) {
+        val selectedUsersCount = binding.usersPaidForList.checkedItemCount
+
+        if (selectedUsersCount == 0) {
             Snackbar.make(requireView(), "You must pay for at least one participant.", Snackbar.LENGTH_SHORT).show()
             return@launch
         }
 
-        val expense = createExpense(title, amount, date, userPayingId, userPaidForIds)
+        binding.usersPaidForList.checkedItemPositions.forEach { key, value ->
+            if (value) {
+                val userId = (binding.usersPaidForList.getItemAtPosition(key) as Profile).userId!!
+                val userAmount = (amount / BigDecimal(selectedUsersCount)).toString()
+                usersPaidFor[userId] = userAmount
+            }
+        }
+
+        val expense = createExpense(title, amount, date, userPayingId, usersPaidFor)
 
         try {
-            billCollectionRef.document(bill.documentId!!).collection("expenses").add(expense).await()
+            expenseCollectionRef.add(expense).await()
             Snackbar.make(requireView(), "Expense saved", Snackbar.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
@@ -117,13 +122,13 @@ class AddExpenseFragment: Fragment() {
         amount: BigDecimal,
         date: Date,
         userPayingId: String,
-        userPaidForIds: List<String>
+        usersPaidFor: Map<String, String>
     ): Expense = Expense (
         title = title,
         bigDecimalAmount = amount,
         date = date,
         userPayingId = userPayingId,
-        userPaidForIds = userPaidForIds
+        usersPaidFor = usersPaidFor
     )
 
     private fun setUpDatePickerDialog() {
@@ -174,6 +179,7 @@ class AddExpenseFragment: Fragment() {
 
     private fun setUp(billId: String) {
         try {
+            expenseCollectionRef = billCollectionRef.document(billId).collection("expenses")
             billCollectionRef.document(billId).get().addOnSuccessListener {
                 bill = it.toObject(Bill::class.java)!!
 
