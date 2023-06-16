@@ -19,6 +19,7 @@ import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddExpenseBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -39,8 +40,11 @@ class AddExpenseFragment: Fragment() {
     private var _binding: FragmentAddExpenseBinding? = null
     private val binding get() = _binding!!
 
+    private val auth = Firebase.auth
+
     private val calendar: Calendar = Calendar.getInstance()
     private val args: AddExpenseFragmentArgs by navArgs()
+
     private lateinit var bill: Bill
     private lateinit var expenseCollectionRef: CollectionReference
     private val billCollectionRef = Firebase.firestore.collection("bills")
@@ -165,6 +169,10 @@ class AddExpenseFragment: Fragment() {
         )
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.userPayingSpinner.adapter = dataAdapter
+
+
+        val currentUserPosition = dataAdapter.getPosition(users.first { it.userId == auth.currentUser!!.uid })
+        binding.userPayingSpinner.setSelection(currentUserPosition)
     }
 
     private fun setUpUsersPaidForListView(users: List<Profile>) {
@@ -179,13 +187,14 @@ class AddExpenseFragment: Fragment() {
 
     private fun setUp(billId: String) {
         try {
+            setUpDatePickerDialog()
+
             expenseCollectionRef = billCollectionRef.document(billId).collection("expenses")
+
             billCollectionRef.document(billId).get().addOnSuccessListener {
                 bill = it.toObject(Bill::class.java)!!
-
                 val users = getBillUsers(bill)
 
-                setUpDatePickerDialog()
                 setUpUserPayingSpinner(users)
                 setUpUsersPaidForListView(users)
             }
