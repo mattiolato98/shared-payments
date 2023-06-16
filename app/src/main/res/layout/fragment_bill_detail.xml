@@ -27,13 +27,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
                 <TextView
-                    android:text="My total"
+                    android:text="@string/my_total"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="13sp"
                     android:textColor="?attr/colorOnPrimary"/>
                 <TextView
-                    android:text="1200.20"
+                    android:id="@+id/user_total"
+                    android:text="@string/decimal_zero"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
@@ -46,14 +47,15 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
                 <TextView
-                    android:text="Group total"
+                    android:text="@string/group_total"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:textSize="13sp"
                     android:textColor="?attr/colorOnPrimary"/>
                 <TextView
-                    android:text="1200.20"
+                    android:id="@+id/group_total"
+                    android:text="@string/decimal_zero"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
