@@ -13,6 +13,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentBillDetailBinding
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -20,6 +21,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.math.RoundingMode
 
 const val TAG = "BILL_DETAIL"
 
@@ -28,6 +30,8 @@ class BillDetailFragment: Fragment() {
 
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
+
+    private val auth = Firebase.auth
 
     private lateinit var expensesAdapter: ExpensesAdapter
 
@@ -80,11 +84,17 @@ class BillDetailFragment: Fragment() {
             }
             querySnapshot?.let {
                 val expensesList = querySnapshot.documents.map { doc ->
-                    doc.toObject(Expense::class.java)
+                    doc.toObject(Expense::class.java)!!
                 }
+                bill.expenses = expensesList
                 expensesAdapter.differ.submitList(expensesList)
             }
         }
+    }
+
+    private fun setTotals() {
+        binding.userTotal.text = bill.getUserTotal(auth.currentUser!!.uid).setScale(2, RoundingMode.HALF_UP).toString()
+        binding.groupTotal.text = bill.groupTotal.setScale(2, RoundingMode.HALF_UP).toString()
     }
 
     private fun navigateToAddExpense() {
