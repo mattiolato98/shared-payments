@@ -67,7 +67,10 @@ class BillDetailFragment: Fragment() {
             return@launch
         }
 
-        expensesAdapter = ExpensesAdapter(bill)
+        expensesAdapter = ExpensesAdapter(
+            bill,
+            setTotals = { setTotals() }
+        )
         binding.expensesList.adapter = expensesAdapter
 
         subscribeToRealtimeUpdates()
