@@ -16,7 +16,6 @@ import com.example.turtle.databinding.FragmentBillDetailBinding
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -96,8 +95,8 @@ class BillDetailFragment: Fragment() {
     }
 
     private fun setTotals() {
-        binding.userTotal.text = bill.getUserTotal(auth.currentUser!!.uid).setScale(2, RoundingMode.HALF_UP).toString()
-        binding.groupTotal.text = bill.groupTotal.setScale(2, RoundingMode.HALF_UP).toString()
+        binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid).setScale(2, RoundingMode.HALF_UP).toString()
+        binding.groupTotal.text = bill.groupTotal().setScale(2, RoundingMode.HALF_UP).toString()
     }
 
     private fun navigateToAddExpense() {

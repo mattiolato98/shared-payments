@@ -21,7 +21,7 @@ data class Bill(
     var expenses: List<Expense>? = null,
 
     ) {
-    val groupTotal: BigDecimal get() {
+    fun groupTotal(): BigDecimal {
         var result: BigDecimal = BigDecimal.ZERO
 
         expenses?.map { it.bigDecimalAmount }?.also {
@@ -31,7 +31,7 @@ data class Bill(
         return result
     }
 
-    fun getUserTotal(userId: String): BigDecimal {
+    fun userTotal(userId: String): BigDecimal {
         var result: BigDecimal = BigDecimal.ZERO
 
         expenses?.forEach { expense ->
