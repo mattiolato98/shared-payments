@@ -52,6 +52,19 @@
                 android:name="billId"
                 app:argType="string" />
         </action>
+        <action
+            android:id="@+id/navigate_to_expense_detail"
+            app:destination="@id/navigation_expense_detail">
+            <argument
+                android:name="billId"
+                app:argType="string" />
+            <argument
+                android:name="expenseId"
+                app:argType="string"/>
+            <argument
+                android:name="title"
+                app:argType="string"/>
+        </action>
     </fragment>
 
     <fragment
@@ -74,6 +87,25 @@
             app:argType="string" />
         <action
             android:id="@id/navigate_to_bill_detail"
+            app:destination="@id/navigation_bill_detail" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_expense_detail"
+        android:name="com.example.turtle.ui.expensedetail.ExpenseDetailFragment"
+        android:label="{title}"
+        tools:layout="@layout/fragment_expense_detail">
+        <argument
+            android:name="billId"
+            app:argType="string" />
+        <argument
+            android:name="expenseId"
+            app:argType="string" />
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <action
+            android:id="@+id/navigate_to_bill_detail"
             app:destination="@id/navigation_bill_detail" />
     </fragment>
 </navigation>
