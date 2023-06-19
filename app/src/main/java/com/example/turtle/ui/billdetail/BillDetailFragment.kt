@@ -68,7 +68,8 @@ class BillDetailFragment: Fragment() {
 
         expensesAdapter = ExpensesAdapter(
             bill,
-            setTotals = { setTotals() }
+            setTotals = { setTotals() },
+            onClickListener = { item -> navigateToExpenseDetail(item) }
         )
         binding.expensesList.adapter = expensesAdapter
 
@@ -97,6 +98,15 @@ class BillDetailFragment: Fragment() {
     private fun setTotals() {
         binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid).setScale(2, RoundingMode.HALF_UP).toString()
         binding.groupTotal.text = bill.groupTotal().setScale(2, RoundingMode.HALF_UP).toString()
+    }
+
+    private fun navigateToExpenseDetail(expense: Expense) {
+        val action = BillDetailFragmentDirections.navigateToExpenseDetail(
+            bill.documentId!!,
+            expense.documentId!!,
+            expense.title
+        )
+        findNavController().navigate(action)
     }
 
     private fun navigateToAddExpense() {
