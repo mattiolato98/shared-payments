@@ -74,6 +74,7 @@
         <item name="textFillColor">@color/dark_001</item>
         <item name="android:textColorPrimary">@color/dark_002</item>
         <item name="android:textColorSecondary">#c2c2c2</item>
+        <item name="android:textColorHighlight">?attr/colorPrimary</item>
         <item name="dividerColor">@color/light_dark_001</item>
         <item name="snackbarStyle">@style/SnackbarStyle</item>
         <item name="materialCardViewStyle">@style/MaterialCardViewStyle</item>
