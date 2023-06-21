@@ -22,7 +22,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/dark_005</item>
         <item name="actionBarStyle">@style/ActionBarStyle</item>
-        <item name="android:navigationBarColor">?android:attr/windowBackground</item>
+        <item name="android:navigationBarColor">@color/dark_005</item>
         <item name="android:windowLightStatusBar">false</item>
         <!-- Customize your theme here. -->
         <item name="errorTextColor">@color/bittersweet_002</item>
