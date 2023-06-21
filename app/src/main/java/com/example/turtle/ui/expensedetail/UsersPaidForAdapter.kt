@@ -12,18 +12,20 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 class UsersPaidForAdapter(
-    private val data: Map<Profile, String>,
+    private val data: Map<String, String>,
 ): RecyclerView.Adapter<UsersPaidForAdapter.UsersPaidForViewHolder>() {
 
-    private val keys: List<Profile> = data.keys.toList()
+    private val keys: List<String> = data.keys.toList()
 
     inner class UsersPaidForViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val user: TextView
-        val userAmount: TextView
+        val userPositiveAmount: TextView
+        val userNegativeAmount: TextView
 
         init {
             user = itemView.findViewById(R.id.user)
-            userAmount = itemView.findViewById(R.id.user_amount)
+            userPositiveAmount = itemView.findViewById(R.id.user_positive_amount)
+            userNegativeAmount = itemView.findViewById(R.id.user_negative_amount)
         }
     }
 
@@ -38,12 +40,16 @@ class UsersPaidForAdapter(
     }
 
     override fun onBindViewHolder(holder: UsersPaidForViewHolder, position: Int) {
-        val username = keys[position].email!!.split("@")[0]
-        val amount = BigDecimal(data[keys[position]]).setScale(2, RoundingMode.HALF_UP).toString()
+        val username = keys[position]
+        val amount = BigDecimal(data[keys[position]]).setScale(2, RoundingMode.HALF_UP)
 
         with(holder) {
             user.text = username
-            userAmount.text = amount
+
+            if (amount >= BigDecimal.ZERO)
+                userPositiveAmount.text = amount.toString()
+            else
+                userNegativeAmount.text = amount.toString()
         }
     }
 

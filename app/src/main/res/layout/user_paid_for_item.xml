@@ -27,11 +27,18 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="15sp" />
             <TextView
-                android:id="@+id/user_amount"
+                android:id="@+id/user_positive_amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:textColor="?android:attr/textColorHighlight"
+                android:textSize="15sp" />
+            <TextView
+                android:id="@+id/user_negative_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textColor="?attr/errorTextColor"
                 android:textSize="15sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

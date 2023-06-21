@@ -92,6 +92,8 @@ class ExpenseDetailFragment: Fragment() {
         val usersPaidFor =
             bill.users!!.filter { it.userId in expense.usersPaidFor!!.keys }.associateWith {
                 expense.usersPaidFor!![it.userId].toString()
+            }.mapKeys {
+                it.key.email!!.split("@")[0]
             }
 
         usersPaidForAdapter = UsersPaidForAdapter(usersPaidFor)

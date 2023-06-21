@@ -48,6 +48,7 @@ open class BillDetailFragment: Fragment() {
 
             val bundle = bundleOf(Pair("billId", args.billId))
             expensesFragment.arguments = bundle
+            balanceFragment.arguments = bundle
 
             childFragmentManager.beginTransaction()
                 .add(R.id.container, expensesFragment, "expensesFragment")

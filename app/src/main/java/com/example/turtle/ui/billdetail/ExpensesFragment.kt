@@ -33,8 +33,8 @@ class ExpensesFragment: Fragment() {
     private val auth = Firebase.auth
 
     private lateinit var expensesAdapter: ExpensesAdapter
-    private lateinit var billId: String
 
+    private lateinit var billId: String
     private lateinit var bill: Bill
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
@@ -97,8 +97,8 @@ class ExpensesFragment: Fragment() {
     }
 
     private fun setTotals() {
-        binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid).setScale(2, RoundingMode.HALF_UP).toString()
-        binding.groupTotal.text = bill.groupTotal().setScale(2, RoundingMode.HALF_UP).toString()
+        binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid)
+        binding.groupTotal.text = bill.groupTotal()
     }
 
     private fun navigateToExpenseDetail(expense: Expense) {
