@@ -43,9 +43,6 @@
             android:name="title"
             app:argType="string" />
         <action
-            android:id="@+id/navigate_to_bills"
-            app:destination="@id/navigation_bills" />
-        <action
             android:id="@+id/navigate_to_add_expense"
             app:destination="@id/navigation_add_expense">
             <argument
