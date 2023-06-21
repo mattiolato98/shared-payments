@@ -1,42 +1,39 @@
 package com.example.turtle.ui.billdetail
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.FragmentTransaction
 import androidx.navigation.fragment.navArgs
-import com.example.turtle.data.Bill
-import com.example.turtle.data.Expense
+import com.example.turtle.R
 import com.example.turtle.databinding.FragmentBillDetailBinding
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.math.RoundingMode
-
-const val TAG = "BILL_DETAIL"
 
 
-class BillDetailFragment: Fragment() {
-
+open class BillDetailFragment: Fragment() {
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
 
-    private val auth = Firebase.auth
-
-    private lateinit var expensesAdapter: ExpensesAdapter
-
     private val args: BillDetailFragmentArgs by navArgs()
-    private lateinit var bill: Bill
-    private val billCollectionRef = Firebase.firestore.collection("bills")
+
+    private lateinit var expensesFragment: ExpensesFragment
+    private lateinit var balanceFragment: BalanceFragment
+
+    private val tabs: List<LinearLayout> get() = binding.run {
+        listOf(binding.expensesNavigation, binding.balanceNavigation)
+    }
+    private val fragments: List<Fragment> get() = listOf(expensesFragment, balanceFragment)
+
+    private var selectedIndex = 0
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,79 +41,85 @@ class BillDetailFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentBillDetailBinding.inflate(inflater, container, false)
+
+        if (savedInstanceState == null) {
+            expensesFragment = ExpensesFragment()
+            balanceFragment = BalanceFragment()
+
+            val bundle = bundleOf(Pair("billId", args.billId))
+            expensesFragment.arguments = bundle
+
+            childFragmentManager.beginTransaction()
+                .add(R.id.container, expensesFragment, "expensesFragment")
+                .add(R.id.container, balanceFragment, "balanceFragment")
+                .selectFragment(selectedIndex)
+                .commit()
+
+        } else {
+            selectedIndex = savedInstanceState.getInt("selectedIndex", 0)
+
+            expensesFragment = childFragmentManager.findFragmentByTag("expensesFragment") as ExpensesFragment
+            balanceFragment = childFragmentManager.findFragmentByTag("balanceFragment") as BalanceFragment
+        }
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        (activity as AppCompatActivity).supportActionBar?.elevation = 0f
-
-        getBill(args.billId)
-        binding.newExpenseButton.setOnClickListener { navigateToAddExpense() }
-    }
-
-    private fun getBill(billId: String) = viewLifecycleOwner.lifecycleScope.launch {
-        bill = try {
-            val doc = billCollectionRef.document(billId).get().await()
-            doc.toObject(Bill::class.java)!!
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            if (e is CancellationException) throw e
-            return@launch
+        setupTabSelectedState(selectedIndex)
+        tabs.forEachIndexed { index, textView ->
+            textView.setOnClickListener { selectFragment(index) }
         }
-
-        expensesAdapter = ExpensesAdapter(
-            bill,
-            setTotals = { setTotals() },
-            onClickListener = { item -> navigateToExpenseDetail(item) }
-        )
-        binding.expensesList.adapter = expensesAdapter
-
-        subscribeToRealtimeUpdates()
     }
 
-    private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
-        val expenseQuery = billCollectionRef.document(args.billId)
-            .collection("expenses")
-            .orderBy("date", Query.Direction.DESCENDING)
+    private fun FragmentTransaction.selectFragment(selectedIndex: Int): FragmentTransaction {
+        fragments.forEachIndexed { index, fragment ->
+            if (index == selectedIndex) attach(fragment) else detach(fragment)
+        }
+        return this
+    }
 
-        expenseQuery.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-            firebaseFirestoreException?.let {
-                Log.e(TAG, it.message.toString())
-            }
-            querySnapshot?.let {
-                val expensesList = querySnapshot.documents.map { doc ->
-                    doc.toObject(Expense::class.java)!!
+    private fun selectFragment(index: Int) {
+        selectedIndex = index
+        setupTabSelectedState(index)
+        childFragmentManager.beginTransaction().selectFragment(index).commit()
+    }
+
+    private fun setupTabSelectedState(selectedIndex: Int) {
+        val theme = requireContext().theme
+        val primaryColor = TypedValue()
+        val defaultTextColor = TypedValue()
+        theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, primaryColor, true)
+        theme.resolveAttribute(android.R.attr.textColorPrimary, defaultTextColor, true)
+
+        tabs.forEachIndexed { index, layout ->
+            val icon = (layout.getChildAt(0) as ImageView)
+            val textView = (layout.getChildAt(1) as TextView)
+
+            Log.d("TAG", "#${Integer.toHexString(textView.currentHintTextColor).substring(2)}")
+            when (index) {
+                selectedIndex -> {
+                    textView.typeface = Typeface.DEFAULT_BOLD
+                    textView.setTextColor(primaryColor.data)
+                    icon.setColorFilter(primaryColor.data)
                 }
-                bill.expenses = expensesList
-                expensesAdapter.differ.submitList(expensesList)
+                else -> {
+                    textView.typeface = Typeface.DEFAULT
+                    textView.setTextColor(defaultTextColor.data)
+                    icon.setColorFilter(defaultTextColor.data)
+                }
             }
         }
     }
 
-    private fun setTotals() {
-        binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid).setScale(2, RoundingMode.HALF_UP).toString()
-        binding.groupTotal.text = bill.groupTotal().setScale(2, RoundingMode.HALF_UP).toString()
-    }
-
-    private fun navigateToExpenseDetail(expense: Expense) {
-        val action = BillDetailFragmentDirections.navigateToExpenseDetail(
-            bill.documentId!!,
-            expense.documentId!!,
-            expense.title
-        )
-        findNavController().navigate(action)
-    }
-
-    private fun navigateToAddExpense() {
-        val action = BillDetailFragmentDirections.navigateToAddExpense(bill.documentId!!)
-        findNavController().navigate(action)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("selectedIndex", selectedIndex)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
 }
