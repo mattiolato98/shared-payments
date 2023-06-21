@@ -29,6 +29,8 @@
     <string name="decimal_zero">0.00</string>
     <string name="my_total">My total</string>
     <string name="group_total">Group total</string>
+    <string name="expenses">Expenses</string>
+    <string name="balance">Balance</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
