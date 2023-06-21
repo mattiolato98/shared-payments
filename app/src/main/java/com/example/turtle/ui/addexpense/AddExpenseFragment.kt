@@ -27,6 +27,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -103,7 +104,7 @@ class AddExpenseFragment: Fragment() {
         binding.usersPaidForList.checkedItemPositions.forEach { key, value ->
             if (value) {
                 val userId = (binding.usersPaidForList.getItemAtPosition(key) as Profile).userId!!
-                val userAmount = (amount / BigDecimal(selectedUsersCount)).toString()
+                val userAmount = (amount.divide(BigDecimal(selectedUsersCount), 2, RoundingMode.HALF_UP)).toString()
                 usersPaidFor[userId] = userAmount
             }
         }
