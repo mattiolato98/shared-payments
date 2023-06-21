@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/fragment_expenses"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            app:cardBackgroundColor="?attr/colorPrimaryDark"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:cardElevation="4dp"
+            app:cardCornerRadius="0dp" >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="20dp"
+                    android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="50"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                                <TextView
+                                    android:text="@string/my_total"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="13sp"
+                                    android:textColor="?attr/colorOnPrimary"/>
+                                <TextView
+                                    android:id="@+id/user_total"
+                                    android:text="@string/decimal_zero"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"
+                                    android:textColor="?attr/colorOnSecondary" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="50"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                                <TextView
+                                    android:text="@string/group_total"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="end"
+                                    android:textSize="13sp"
+                                    android:textColor="?attr/colorOnPrimary"/>
+                                <TextView
+                                    android:id="@+id/group_total"
+                                    android:text="@string/decimal_zero"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="end"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"
+                                    android:textColor="?attr/colorOnSecondary" />
+                        </LinearLayout>
+                </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/expenses_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/top_bar"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:paddingTop="10dp"
+            android:paddingHorizontal="7dp"
+            android:paddingBottom="50dp"
+            android:clipToPadding="false" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/new_expense_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:src="@drawable/add_material"
+            app:fabSize="normal"
+            android:contentDescription="@string/add_new_expense"
+            android:layout_margin="16dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
