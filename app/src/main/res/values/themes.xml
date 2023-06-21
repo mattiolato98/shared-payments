@@ -58,9 +58,9 @@
         <item name="colorPrimary">@color/jade_002</item>
         <item name="colorPrimaryVariant">@color/jade_001</item>
         <item name="colorOnPrimary">@color/white_smoke_002</item>
-        <item name="colorPrimaryDark">@color/jade_002</item>
+        <item name="colorPrimaryDark">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/bittersweet_001</item>
+        <item name="colorSecondary">@color/jade_002</item>
         <item name="colorSecondaryVariant">@color/bittersweet_002</item>
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->

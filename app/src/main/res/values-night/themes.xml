@@ -3,20 +3,25 @@
         <item name="backgroundTint">@color/brown_002</item>
     </style>
 
+    <style name="ActionBarStyle" parent="Widget.MaterialComponents.Light.ActionBar.Solid">
+        <item name="background">@color/dark_005</item>
+    </style>
+
     <!-- Dark application theme. -->
     <style name="Theme.Turtle" parent="Theme.Turtle.Base">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/jade_001</item>
         <item name="colorPrimaryVariant">@color/jade_002</item>
         <item name="colorOnPrimary">@color/white_smoke_002</item>
-        <item name="colorPrimaryDark">@color/dark_004</item>
+        <item name="colorPrimaryDark">@color/dark_005</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/bittersweet_001</item>
+        <item name="colorSecondary">@color/dark_005</item>
         <item name="colorSecondaryVariant">@color/bittersweet_002</item>
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">@color/dark_004</item>
+        <item name="android:statusBarColor">@color/dark_005</item>
+        <item name="actionBarStyle">@style/ActionBarStyle</item>
         <item name="android:navigationBarColor">?android:attr/windowBackground</item>
         <item name="android:windowLightStatusBar">false</item>
         <!-- Customize your theme here. -->
