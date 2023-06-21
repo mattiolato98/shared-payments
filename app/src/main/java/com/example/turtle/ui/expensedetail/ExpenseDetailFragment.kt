@@ -6,14 +6,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
-import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentExpenseDetailBinding
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
@@ -38,7 +36,7 @@ class ExpenseDetailFragment: Fragment() {
     private lateinit var bill: Bill
     private lateinit var expense: Expense
 
-    private lateinit var usersPaidForAdapter: UsersPaidForAdapter
+    private lateinit var balanceAdapter: BalanceAdapter
 
     private val billCollectionRef = Firebase.firestore.collection("bills")
     private lateinit var expenseCollectionRef: CollectionReference
@@ -96,8 +94,8 @@ class ExpenseDetailFragment: Fragment() {
                 it.key.email!!.split("@")[0]
             }
 
-        usersPaidForAdapter = UsersPaidForAdapter(usersPaidFor)
-        binding.usersPaidForList.adapter = usersPaidForAdapter
+        balanceAdapter = BalanceAdapter(usersPaidFor)
+        binding.usersPaidForList.adapter = balanceAdapter
     }
 
 

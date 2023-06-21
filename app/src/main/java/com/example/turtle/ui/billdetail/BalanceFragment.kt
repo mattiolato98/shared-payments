@@ -10,10 +10,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentBalanceBinding
-import com.example.turtle.ui.expensedetail.UsersPaidForAdapter
-import com.google.android.material.snackbar.Snackbar
+import com.example.turtle.ui.expensedetail.BalanceAdapter
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -28,7 +26,7 @@ class BalanceFragment: Fragment() {
     private lateinit var bill: Bill
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
-    private lateinit var usersPaidForAdapter: UsersPaidForAdapter
+    private lateinit var balanceAdapter: BalanceAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,8 +58,8 @@ class BalanceFragment: Fragment() {
         }
         bill.expenses = expensesList
 
-        usersPaidForAdapter = UsersPaidForAdapter(bill.balance())
-        binding.usersBalance.adapter = usersPaidForAdapter
+        balanceAdapter = BalanceAdapter(bill.balance())
+        binding.usersBalance.adapter = balanceAdapter
     }
 
     override fun onDestroyView() {

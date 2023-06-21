@@ -6,18 +6,16 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.turtle.R
-import com.example.turtle.data.Bill
-import com.example.turtle.data.Profile
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class UsersPaidForAdapter(
+class BalanceAdapter(
     private val data: Map<String, String>,
-): RecyclerView.Adapter<UsersPaidForAdapter.UsersPaidForViewHolder>() {
+): RecyclerView.Adapter<BalanceAdapter.BalanceViewHolder>() {
 
     private val keys: List<String> = data.keys.toList()
 
-    inner class UsersPaidForViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+    inner class BalanceViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val user: TextView
         val userPositiveAmount: TextView
         val userNegativeAmount: TextView
@@ -29,8 +27,8 @@ class UsersPaidForAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UsersPaidForViewHolder {
-        return UsersPaidForViewHolder(
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BalanceViewHolder {
+        return BalanceViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.user_paid_for_item,
                 parent,
@@ -39,7 +37,7 @@ class UsersPaidForAdapter(
         )
     }
 
-    override fun onBindViewHolder(holder: UsersPaidForViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: BalanceViewHolder, position: Int) {
         val username = keys[position]
         val amount = BigDecimal(data[keys[position]]).setScale(2, RoundingMode.HALF_UP)
 
