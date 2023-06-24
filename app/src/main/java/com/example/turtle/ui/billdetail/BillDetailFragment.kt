@@ -98,7 +98,6 @@ open class BillDetailFragment: Fragment() {
             val icon = (layout.getChildAt(0) as ImageView)
             val textView = (layout.getChildAt(1) as TextView)
 
-            Log.d("TAG", "#${Integer.toHexString(textView.currentHintTextColor).substring(2)}")
             when (index) {
                 selectedIndex -> {
                     textView.typeface = Typeface.DEFAULT_BOLD
