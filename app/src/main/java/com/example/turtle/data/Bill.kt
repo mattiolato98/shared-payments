@@ -6,6 +6,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.Date
 
+
 data class Bill(
     @DocumentId
     var documentId: String? = null,
@@ -37,10 +38,10 @@ data class Bill(
 
         expenses?.forEach { expense ->
             expense.usersPaidFor?.filter { it.key == userId }?.forEach {
-                   result += BigDecimal(it.value)
+                result += BigDecimal(it.value)
             }
         }
-        
+
         return result.setScale(2, RoundingMode.HALF_UP).toString()
     }
 
@@ -54,6 +55,82 @@ data class Bill(
 
         return balance
     }
+
+    fun refunds(): List<Triple<String, String, String>>? {
+        val balance = balance()
+
+        val creditors = balance.mapValues { BigDecimal(it.value) }
+            .filter { it.value > BigDecimal.ZERO }
+            .toList().sortedBy { (_, value) -> -value }.toMap().toMutableMap()
+        val debtors = balance.mapValues { BigDecimal(it.value) }
+            .filter { it.value < BigDecimal.ZERO }.mapValues { it.value.abs() }
+            .toList().sortedBy { (_, value) -> -value }.toMap().toMutableMap()
+
+        val (transaction_number, refunds) = computeRefunds(creditors, debtors)
+
+        return refunds
+    }
+
+    private fun computeRefunds(
+        creditors: MutableMap<String, BigDecimal>,
+        debtors: MutableMap<String, BigDecimal>,
+    ): Pair<Int, List<Triple<String, String, String>>?> {
+
+        if (creditors.isEmpty() || debtors.isEmpty())
+            return Pair(0, listOf())
+
+        var min = Integer.MAX_VALUE
+        var refunds = mutableListOf<Triple<String, String, String>>()
+
+        val creditor = creditors.entries.first()
+
+        debtors.entries.forEach { debtor ->
+
+            val creditorsCopy: MutableMap<String, BigDecimal> = mutableMapOf()
+            creditorsCopy.putAll(creditors)
+
+            val debtorsCopy: MutableMap<String, BigDecimal> = mutableMapOf()
+            debtorsCopy.putAll(debtors)
+
+            val transaction: Triple<String, String, String>
+
+
+            if (debtor.value > creditor.value) {
+                debtorsCopy[debtor.key] = debtor.value - creditor.value
+                debtorsCopy.toList().sortedBy { (_, value) -> -value }.toMap().toMutableMap()
+                creditorsCopy.remove(creditor.key)
+
+                transaction = Triple(debtor.key, creditor.value.toString(), creditor.key)
+            } else if (debtor.value < creditor.value) {
+                creditorsCopy[creditor.key] = creditor.value - debtor.value
+                creditorsCopy.toList().sortedBy { (_, value) -> -value }.toMap().toMutableMap()
+                debtorsCopy.remove(debtor.key)
+
+                transaction = Triple(debtor.key, debtor.value.toString(), creditor.key)
+            } else {
+                creditorsCopy.remove(creditor.key)
+                debtorsCopy.remove(debtor.key)
+
+                transaction = Triple(debtor.key, debtor.value.toString(), creditor.key)
+            }
+
+            val (newMin, newRefunds) = computeRefunds(creditorsCopy, debtorsCopy)
+
+            if (newMin < min) {
+                min = newMin + 1
+
+                refunds = mutableListOf()
+                refunds += transaction
+                newRefunds?.also {
+                    refunds.addAll(newRefunds)
+                }
+            }
+        }
+
+        return Pair(min, refunds)
+    }
+
+
 
     private fun userCreditTotal(userId: String): BigDecimal {
         var result: BigDecimal = BigDecimal.ZERO
