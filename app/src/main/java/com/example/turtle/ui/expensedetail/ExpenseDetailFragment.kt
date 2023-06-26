@@ -4,12 +4,18 @@ import android.os.Bundle
 import android.text.Html
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.text.HtmlCompat
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
+import com.example.turtle.R
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpenseDetailBinding
@@ -25,7 +31,7 @@ import java.util.Locale
 const val TAG = "EXPENSE_DETAIL"
 
 
-class ExpenseDetailFragment: Fragment() {
+class ExpenseDetailFragment: Fragment(), MenuProvider {
     private var _binding: FragmentExpenseDetailBinding? = null
     private val binding get() = _binding!!
 
@@ -52,6 +58,8 @@ class ExpenseDetailFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         expenseCollectionRef = billCollectionRef.document(args.billId).collection("expenses")
         setUp(args.expenseId)
@@ -102,5 +110,18 @@ class ExpenseDetailFragment: Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.expense_options, menu)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
+            R.id.edit_expense -> null
+            R.id.delete_expense -> null
+        }
+
+        return true
     }
 }
