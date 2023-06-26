@@ -30,7 +30,7 @@ class BalanceAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BalanceViewHolder {
         return BalanceViewHolder(
             LayoutInflater.from(parent.context).inflate(
-                R.layout.user_paid_for_item,
+                R.layout.balance_item,
                 parent,
                 false
             )
