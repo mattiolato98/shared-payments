@@ -5,20 +5,27 @@ import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.os.bundleOf
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
 import com.example.turtle.databinding.FragmentBillDetailBinding
+import com.google.android.material.snackbar.Snackbar
 
 
-open class BillDetailFragment: Fragment() {
+open class BillDetailFragment: Fragment(), MenuProvider {
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
 
@@ -68,6 +75,9 @@ open class BillDetailFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
         setupTabSelectedState(selectedIndex)
         tabs.forEachIndexed { index, textView ->
             textView.setOnClickListener { selectFragment(index) }
@@ -121,5 +131,18 @@ open class BillDetailFragment: Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.bill_options, menu)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
+            R.id.edit_bill -> Snackbar.make(requireView(), "Edit", Snackbar.LENGTH_SHORT).show()
+            R.id.delete_bill -> Snackbar.make(requireView(), "Delete", Snackbar.LENGTH_SHORT).show()
+        }
+
+        return true
     }
 }
