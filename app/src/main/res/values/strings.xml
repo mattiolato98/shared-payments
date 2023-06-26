@@ -31,6 +31,7 @@
     <string name="group_total">Group total</string>
     <string name="expenses">Expenses</string>
     <string name="balance">Balance</string>
+    <string name="refunds">Refunds</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
