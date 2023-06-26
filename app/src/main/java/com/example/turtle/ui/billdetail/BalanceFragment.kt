@@ -27,6 +27,7 @@ class BalanceFragment: Fragment() {
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
     private lateinit var balanceAdapter: BalanceAdapter
+    private lateinit var refundsAdapter: RefundsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,6 +61,12 @@ class BalanceFragment: Fragment() {
 
         balanceAdapter = BalanceAdapter(bill.balance())
         binding.usersBalance.adapter = balanceAdapter
+
+        bill.refunds()?.also {
+            refundsAdapter = RefundsAdapter(it)
+            binding.refunds.adapter = refundsAdapter
+        }
+
     }
 
     override fun onDestroyView() {

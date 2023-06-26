@@ -13,4 +13,22 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="5dp" />
 
+    <TextView
+        android:id="@+id/refunds_title"
+        android:text="@string/refunds"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/users_balance"
+        android:layout_marginTop="30dp"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/refunds"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/refunds_title"
+        android:layout_marginTop="5dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
