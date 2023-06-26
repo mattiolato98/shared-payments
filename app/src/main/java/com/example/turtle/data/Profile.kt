@@ -17,6 +17,6 @@ data class Profile (
     var createDateTime: Date? = null,
 ) {
     override fun toString(): String {
-        return email.toString();
+        return email!!.split("@")[0]
     }
 }
