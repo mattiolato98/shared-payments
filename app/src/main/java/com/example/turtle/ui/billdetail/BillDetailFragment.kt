@@ -14,11 +14,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.os.bundleOf
-import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavDirections
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
 import com.example.turtle.databinding.FragmentBillDetailBinding
@@ -84,7 +85,7 @@ open class BillDetailFragment: Fragment(), MenuProvider {
         }
     }
 
-    private fun FragmentTransaction.selectFragment(selectedIndex: Int): FragmentTransaction {
+    private fun FragmentTransaction.selectFragment(selectedIndex: Int?): FragmentTransaction {
         fragments.forEachIndexed { index, fragment ->
             if (index == selectedIndex) attach(fragment) else detach(fragment)
         }
@@ -128,6 +129,19 @@ open class BillDetailFragment: Fragment(), MenuProvider {
         outState.putInt("selectedIndex", selectedIndex)
     }
 
+    private fun navigateToEditBill() {
+        val action = BillDetailFragmentDirections.navigateToEditBill(
+            args.billId,
+            resources.getString(R.string.edit_bill)
+        )
+        navigateToDirection(action)
+    }
+
+    private fun navigateToDirection(action: NavDirections) {
+        childFragmentManager.beginTransaction().selectFragment(null).commit()
+        findNavController().navigate(action)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -139,7 +153,7 @@ open class BillDetailFragment: Fragment(), MenuProvider {
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
-            R.id.edit_bill -> Snackbar.make(requireView(), "Edit", Snackbar.LENGTH_SHORT).show()
+            R.id.edit_bill -> navigateToEditBill()
             R.id.delete_bill -> Snackbar.make(requireView(), "Delete", Snackbar.LENGTH_SHORT).show()
         }
 
