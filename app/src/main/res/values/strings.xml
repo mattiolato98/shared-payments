@@ -17,6 +17,7 @@
     <string name="title">Title</string>
     <string name="description">Description</string>
     <string name="new_bill">New Bill</string>
+    <string name="edit_bill">Edit Bill</string>
     <string name="save_bill">Save bill</string>
     <string name="field_add_friend_hint">Enter friend email</string>
     <string name="friends">Friends</string>
@@ -32,6 +33,8 @@
     <string name="expenses">Expenses</string>
     <string name="balance">Balance</string>
     <string name="refunds">Refunds</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
