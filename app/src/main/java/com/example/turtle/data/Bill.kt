@@ -68,7 +68,7 @@ data class Bill(
 
         val (transaction_number, refunds) = computeRefunds(creditors, debtors)
 
-        return refunds
+        return refunds?.sortedByDescending { it.second }
     }
 
     private fun computeRefunds(
