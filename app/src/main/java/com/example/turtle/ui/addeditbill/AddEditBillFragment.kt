@@ -1,4 +1,4 @@
-package com.example.turtle.ui.addbill
+package com.example.turtle.ui.addeditbill
 
 import android.os.Bundle
 import android.util.Log
@@ -10,12 +10,15 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
 import com.example.turtle.data.Bill
+import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
-import com.example.turtle.databinding.FragmentAddBillBinding
+import com.example.turtle.databinding.FragmentAddEditBillBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
@@ -25,15 +28,21 @@ import kotlinx.coroutines.tasks.await
 const val TAG = "ADD_BILL"
 
 
-class AddBillFragment: Fragment() {
+class AddEditBillFragment: Fragment() {
 
-    private var _binding: FragmentAddBillBinding? = null
+    private var _binding: FragmentAddEditBillBinding? = null
     private val binding get() = _binding!!
+
+    private val args: AddEditBillFragmentArgs by navArgs()
 
     private var friends = mutableMapOf<String, Profile>()
 
     private val billCollectionRef = Firebase.firestore.collection("bills")
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
+
+    private var bill: Bill? = null
+
+    private var isNewBill: Boolean = true
 
     private val auth = Firebase.auth
 
@@ -42,12 +51,14 @@ class AddBillFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentAddBillBinding.inflate(inflater, container, false)
+        _binding = FragmentAddEditBillBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setUp(args.billId)
 
         with(binding) {
             saveBillButton.setOnClickListener { saveBill() }
@@ -56,7 +67,53 @@ class AddBillFragment: Fragment() {
         }
     }
 
+    private fun setUp(billId: String?) = viewLifecycleOwner.lifecycleScope.launch {
+        billId?.also {
+            bill = try {
+                val doc = billCollectionRef.document(billId).get().await()
+                doc.toObject(Bill::class.java)!!
+            } catch (e: Exception) {
+                Log.e(com.example.turtle.ui.billdetail.TAG, e.message.toString())
+                if (e is CancellationException) throw e
+                return@launch
+            }
+
+            isNewBill = false
+            fillForm(bill!!)
+
+            for (user in bill!!.users!!.filter { it.userId != auth.currentUser?.uid }) {
+                val userEmail = user.email!!
+                val profileDoc = profileCollectionRef.whereEqualTo("email", userEmail).get().await().first()
+                val profile = profileDoc.toObject(Profile::class.java)
+                addFriendToLayout(userEmail)
+                friends[userEmail] = profile
+            }
+
+            val expensesCollection = billCollectionRef.document(billId).collection("expenses").get().await()
+            val expensesList = expensesCollection.documents.map { doc ->
+                doc.toObject(Expense::class.java)!!
+            }
+            bill!!.expenses = expensesList
+        }
+    }
+
+    private fun fillForm(bill: Bill) {
+        with(binding) {
+            fieldTitle.setText(bill.title)
+            fieldDescription.setText(bill.description)
+        }
+    }
+
     private fun saveBill() = viewLifecycleOwner.lifecycleScope.launch {
+        if (isNewBill)
+            createNewBill()
+        else
+            updateBill(bill!!)
+
+        findNavController().navigateUp()
+    }
+
+    private suspend fun createNewBill() {
         val profileDocs = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await()
         val currentUserProfile = profileDocs.first().toObject(Profile::class.java)
 
@@ -66,10 +123,10 @@ class AddBillFragment: Fragment() {
 
         if (title.isEmpty()) {
             Snackbar.make(requireView(), "Bill title cannot be empty", Snackbar.LENGTH_SHORT).show()
-            return@launch
+            return
         }
 
-        val bill = createBill(title, description, users)
+        val bill = billObject(title, description, users)
 
         try {
             billCollectionRef.add(bill).await()
@@ -78,11 +135,27 @@ class AddBillFragment: Fragment() {
             Log.e(TAG, e.message.toString())
             if (e is CancellationException) throw e
         }
-
-        findNavController().navigateUp()
     }
 
-    private fun createBill(title: String, description: String?, users: List<Profile>): Bill = Bill(
+    private suspend fun updateBill(bill: Bill) {
+        val currentUserProfileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
+        val currentUserProfile = currentUserProfileDoc.toObject(Profile::class.java)
+
+        val title = binding.fieldTitle.text.toString()
+        val description = binding.fieldDescription.text.toString().let { it.ifEmpty { null } }
+        val users = friends.values + currentUserProfile
+
+        val newBill = billObject(title, description, users)
+
+        billCollectionRef.document(bill.documentId!!).set(
+            newBill,
+            SetOptions.merge()
+        )
+
+        Snackbar.make(requireView(), "Bill information updated", Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun billObject(title: String, description: String?, users: List<Profile>?) = Bill(
         userOwnerId = auth.currentUser?.uid!!,
         users = users,
         title = title,
@@ -141,8 +214,18 @@ class AddBillFragment: Fragment() {
         binding.buttonAddFriend.text = null
     }
 
-    private fun removeFriend(v: View) {
+    private fun removeFriend(v: View) = viewLifecycleOwner.lifecycleScope.launch {
         val text = (v as Button).text
+
+        if (!isNewBill && isUserInvolvedInExpenses(text.toString())) {
+            Snackbar.make(
+                requireView(),
+                "This user is involved in at least one expense, so it is not possible to remove it",
+                Snackbar.LENGTH_SHORT
+            ).show()
+
+            return@launch
+        }
 
         friends.remove(text)
         binding.friendsLinearLayout.removeView(v)
@@ -159,6 +242,16 @@ class AddBillFragment: Fragment() {
             binding.buttonAddFriend.visibility = View.GONE
         }
 
+    }
+
+    private suspend fun isUserInvolvedInExpenses(userEmail: String): Boolean {
+        val profileDoc = profileCollectionRef.whereEqualTo("email", userEmail).get().await().first()
+        val profile = profileDoc.toObject(Profile::class.java)
+
+        return bill!!.expenses
+            ?.flatMap { it.usersPaidFor?.keys!! + it.userPayingId }
+            ?.contains(profile.userId)
+            ?: false
     }
 
     private fun showFriendsTitle() {
