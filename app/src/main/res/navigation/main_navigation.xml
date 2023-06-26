@@ -22,7 +22,16 @@
         </action>
         <action
             android:id="@+id/navigate_to_add_bill"
-            app:destination="@id/navigation_add_bill" />
+            app:destination="@id/navigation_add_edit_bill">
+            <argument
+                android:name="billId"
+                app:argType="string"
+                app:nullable="true"
+                android:defaultValue="null" />
+            <argument
+                android:name="title"
+                app:argType="string" />
+        </action>
     </fragment>
 
     <fragment
@@ -62,13 +71,31 @@
                 android:name="title"
                 app:argType="string"/>
         </action>
+        <action
+            android:id="@+id/navigate_to_edit_bill"
+            app:destination="@id/navigation_add_edit_bill">
+            <argument
+                android:name="billId"
+                app:argType="string" />
+            <argument
+                android:name="title"
+                app:argType="string" />
+        </action>
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_add_bill"
-        android:name="com.example.turtle.ui.addbill.AddBillFragment"
-        android:label="@string/new_bill"
-        tools:layout="@layout/fragment_add_bill">
+        android:id="@+id/navigation_add_edit_bill"
+        android:name="com.example.turtle.ui.addeditbill.AddEditBillFragment"
+        android:label="{title}"
+        tools:layout="@layout/fragment_add_edit_bill">
+        <argument
+            android:name="billId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="null" />
+        <argument
+            android:name="title"
+            app:argType="string" />
         <action
             android:id="@+id/navigate_to_bills"
             app:destination="@id/navigation_bills" />
