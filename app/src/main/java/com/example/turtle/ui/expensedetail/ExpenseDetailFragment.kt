@@ -14,6 +14,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
 import com.example.turtle.data.Bill
@@ -105,10 +106,17 @@ class ExpenseDetailFragment: Fragment() {
         binding.usersPaidForList.adapter = balanceAdapter
     }
 
+    private fun navigateToEditExpense() {
+        val action = ExpenseDetailFragmentDirections.navigateToEditExpense(
+            expense.documentId!!,
+            bill.documentId!!,
+            expense.title,
+        )
+        findNavController().navigate(action)
+    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun showDeleteDialog() {
+
     }
 
     private fun setupMenuProvider() {
@@ -121,8 +129,8 @@ class ExpenseDetailFragment: Fragment() {
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                     when (menuItem.itemId) {
-                        R.id.edit_expense -> null
-                        R.id.delete_expense -> null
+                        R.id.edit_expense -> navigateToEditExpense()
+                        R.id.delete_expense -> showDeleteDialog()
                         else -> return false
                     }
 
@@ -130,6 +138,11 @@ class ExpenseDetailFragment: Fragment() {
                 }
             }, viewLifecycleOwner, Lifecycle.State.RESUMED
         )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
 }
