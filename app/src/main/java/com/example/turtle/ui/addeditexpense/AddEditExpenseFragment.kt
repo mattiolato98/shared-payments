@@ -21,6 +21,7 @@ import com.example.turtle.databinding.FragmentAddEditExpenseBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
@@ -32,6 +33,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.exp
 
 const val TAG = "ADD_EXPENSE"
 
@@ -160,11 +162,13 @@ class AddEditExpenseFragment: Fragment() {
             }
         }
 
-        val expense = createExpense(title, amount, date, userPayingId, usersPaidFor)
+        val expenseObject = expenseObject(title, amount, date, userPayingId, usersPaidFor)
 
         try {
-            expenseCollectionRef.add(expense).await()
-            Snackbar.make(requireView(), "Expense saved", Snackbar.LENGTH_SHORT).show()
+            if (isNewExpense)
+                createNewExpense(expenseObject)
+            else
+                updateExpense(expense!!.documentId!!, expenseObject)
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
             if (e is CancellationException) throw e
@@ -173,7 +177,20 @@ class AddEditExpenseFragment: Fragment() {
         findNavController().navigateUp()
     }
 
-    private fun createExpense(
+    private suspend fun createNewExpense(expense: Expense) {
+        expenseCollectionRef.add(expense).await()
+        Snackbar.make(requireView(), "Expense saved", Snackbar.LENGTH_SHORT).show()
+    }
+
+    private suspend fun updateExpense(expenseId: String, newExpense: Expense) {
+        expenseCollectionRef.document(expenseId).set(
+            newExpense,
+            SetOptions.merge()
+        ).await()
+        Snackbar.make(requireView(), "Expense information updated", Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun expenseObject(
         title: String,
         amount: BigDecimal,
         date: Date,
