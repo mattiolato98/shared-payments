@@ -105,17 +105,8 @@ class AddEditBillFragment: Fragment() {
     }
 
     private fun saveBill() = viewLifecycleOwner.lifecycleScope.launch {
-        if (isNewBill)
-            createNewBill()
-        else
-            updateBill(bill!!)
-
-        findNavController().navigateUp()
-    }
-
-    private suspend fun createNewBill() {
-        val profileDocs = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await()
-        val currentUserProfile = profileDocs.first().toObject(Profile::class.java)
+        val profileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
+        val currentUserProfile = profileDoc.toObject(Profile::class.java)
 
         val title = binding.fieldTitle.text.toString()
         val description = binding.fieldDescription.text.toString().let { it.ifEmpty { null } }
@@ -123,35 +114,34 @@ class AddEditBillFragment: Fragment() {
 
         if (title.isEmpty()) {
             Snackbar.make(requireView(), "Bill title cannot be empty", Snackbar.LENGTH_SHORT).show()
-            return
+            return@launch
         }
 
-        val bill = billObject(title, description, users)
+        val billObject = billObject(title, description, users)
 
         try {
-            billCollectionRef.add(bill).await()
-            Snackbar.make(requireView(), "Bill saved", Snackbar.LENGTH_SHORT).show()
+            if (isNewBill)
+                createNewBill(billObject)
+            else
+                updateBill(bill!!.documentId!!, billObject)
         } catch (e: Exception) {
             Log.e(TAG, e.message.toString())
             if (e is CancellationException) throw e
         }
+
+        findNavController().navigateUp()
     }
 
-    private suspend fun updateBill(bill: Bill) {
-        val currentUserProfileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
-        val currentUserProfile = currentUserProfileDoc.toObject(Profile::class.java)
+    private suspend fun createNewBill(bill: Bill) {
+        billCollectionRef.add(bill).await()
+        Snackbar.make(requireView(), "Bill saved", Snackbar.LENGTH_SHORT).show()
+    }
 
-        val title = binding.fieldTitle.text.toString()
-        val description = binding.fieldDescription.text.toString().let { it.ifEmpty { null } }
-        val users = friends.values + currentUserProfile
-
-        val newBill = billObject(title, description, users)
-
-        billCollectionRef.document(bill.documentId!!).set(
+    private suspend fun updateBill(billId: String, newBill: Bill) {
+        billCollectionRef.document(billId).set(
             newBill,
             SetOptions.merge()
-        )
-
+        ).await()
         Snackbar.make(requireView(), "Bill information updated", Snackbar.LENGTH_SHORT).show()
     }
 
