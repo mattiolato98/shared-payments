@@ -26,7 +26,7 @@ import com.example.turtle.databinding.FragmentBillDetailBinding
 import com.google.android.material.snackbar.Snackbar
 
 
-open class BillDetailFragment: Fragment(), MenuProvider {
+open class BillDetailFragment: Fragment() {
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
 
@@ -71,13 +71,13 @@ open class BillDetailFragment: Fragment(), MenuProvider {
             balanceFragment = childFragmentManager.findFragmentByTag("balanceFragment") as BalanceFragment
         }
 
+        setupMenuProvider()
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         setupTabSelectedState(selectedIndex)
         tabs.forEachIndexed { index, textView ->
@@ -142,21 +142,30 @@ open class BillDetailFragment: Fragment(), MenuProvider {
         findNavController().navigate(action)
     }
 
+    private fun setupMenuProvider() {
+        val menuHost = requireActivity()
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.bill_options, menu)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.edit_bill -> navigateToEditBill()
+                        R.id.delete_bill -> Snackbar.make(requireView(), "Delete", Snackbar.LENGTH_SHORT).show()
+                        else -> return false
+                    }
+
+                    return true
+                }
+            }, viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.bill_options, menu)
-    }
-
-    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        when (menuItem.itemId) {
-            R.id.edit_bill -> navigateToEditBill()
-            R.id.delete_bill -> Snackbar.make(requireView(), "Delete", Snackbar.LENGTH_SHORT).show()
-        }
-
-        return true
-    }
 }
