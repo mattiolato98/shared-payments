@@ -1,5 +1,6 @@
 package com.example.turtle.ui.expensedetail
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.text.Html
 import android.util.Log
@@ -20,6 +21,7 @@ import com.example.turtle.R
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpenseDetailBinding
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -116,7 +118,30 @@ class ExpenseDetailFragment: Fragment() {
     }
 
     private fun showDeleteDialog() {
-
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Expense")
+            .setMessage("Are you sure you want to delete ${args.title}? The action is not reversible!")
+            .setPositiveButton("Delete") { dialog, _ ->
+                dialog.cancel()
+                expenseCollectionRef.document(args.expenseId).delete()
+                    .addOnSuccessListener {
+                        Snackbar.make(
+                            requireView(),
+                            "Expense successfully deleted",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                        findNavController().navigateUp()
+                    }
+                    .addOnFailureListener {
+                        Snackbar.make(
+                            requireView(),
+                            "An unexpected error occurred while deleting the item. Retry later",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupMenuProvider() {
