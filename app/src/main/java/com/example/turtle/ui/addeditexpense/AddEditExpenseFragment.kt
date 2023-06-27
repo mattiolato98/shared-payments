@@ -1,4 +1,4 @@
-package com.example.turtle.ui.addexpense
+package com.example.turtle.ui.addeditexpense
 
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
@@ -17,7 +17,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
-import com.example.turtle.databinding.FragmentAddExpenseBinding
+import com.example.turtle.databinding.FragmentAddEditExpenseBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.CollectionReference
@@ -36,34 +36,85 @@ import java.util.Locale
 const val TAG = "ADD_EXPENSE"
 
 
-class AddExpenseFragment: Fragment() {
+class AddEditExpenseFragment: Fragment() {
 
-    private var _binding: FragmentAddExpenseBinding? = null
+    private var _binding: FragmentAddEditExpenseBinding? = null
     private val binding get() = _binding!!
 
     private val auth = Firebase.auth
 
     private val calendar: Calendar = Calendar.getInstance()
-    private val args: AddExpenseFragmentArgs by navArgs()
+    private val args: AddEditExpenseFragmentArgs by navArgs()
 
     private lateinit var bill: Bill
     private lateinit var expenseCollectionRef: CollectionReference
     private val billCollectionRef = Firebase.firestore.collection("bills")
+
+    private var expense: Expense? = null
+
+    private var isNewExpense: Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentAddExpenseBinding.inflate(inflater, container, false)
+        _binding = FragmentAddEditExpenseBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUp(args.billId)
+        setUp(args.billId, args.expenseId)
 
         binding.saveExpenseButton.setOnClickListener { saveExpense() }
+    }
+
+    private fun setUp(billId: String, expenseId: String?) = viewLifecycleOwner.lifecycleScope.launch {
+        bill = try {
+            expenseCollectionRef = billCollectionRef.document(billId).collection("expenses")
+
+            val billDoc = billCollectionRef.document(billId).get().await()
+            billDoc.toObject(Bill::class.java)!!
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+            if (e is CancellationException) throw e
+            return@launch
+        }
+
+        val users = getBillUsers(bill)
+
+        if (expenseId == null) {
+            setUpDatePickerDialog()
+            setUpUserPayingSpinner(users)
+            setUpUsersPaidForListView(users)
+        } else {
+            expense = setUpExpense(expenseId)
+
+            setUpDatePickerDialog(expense!!.date)
+            setUpUserPayingSpinner(users, expense!!.userPayingId)
+            setUpUsersPaidForListView(users, expense!!.usersPaidFor)
+        }
+    }
+
+    private suspend fun setUpExpense(expenseId: String): Expense? {
+        val expense = try {
+            val doc = expenseCollectionRef.document(expenseId).get().await()
+            doc.toObject(Expense::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+            if (e is CancellationException) throw e
+            return null
+        }
+
+        isNewExpense = false
+
+        with(binding) {
+            fieldTitle.setText(expense!!.title)
+            fieldAmount.setText(expense.amount)
+        }
+
+        return expense
     }
 
     private fun saveExpense() = viewLifecycleOwner.lifecycleScope.launch {
@@ -136,7 +187,11 @@ class AddExpenseFragment: Fragment() {
         usersPaidFor = usersPaidFor
     )
 
-    private fun setUpDatePickerDialog() {
+    private fun setUpDatePickerDialog(expenseDate: Date? = null) {
+        expenseDate?.also {
+            calendar.time = expenseDate
+        }
+
         updateDateInputField()
 
         val datePickerDialog = OnDateSetListener { _, year, month, dayOfMonth ->
@@ -162,7 +217,7 @@ class AddExpenseFragment: Fragment() {
         binding.fieldDate.setText(dateFormat.format(calendar.time))
     }
 
-    private fun setUpUserPayingSpinner(users: List<Profile>) {
+    private fun setUpUserPayingSpinner(users: List<Profile>, userPayingId: String? = null) {
         val dataAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -171,37 +226,32 @@ class AddExpenseFragment: Fragment() {
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.userPayingSpinner.adapter = dataAdapter
 
+        val userPosition = if (userPayingId == null) {
+            dataAdapter.getPosition(users.first { it.userId == auth.currentUser!!.uid })
 
-        val currentUserPosition = dataAdapter.getPosition(users.first { it.userId == auth.currentUser!!.uid })
-        binding.userPayingSpinner.setSelection(currentUserPosition)
+        } else {
+            dataAdapter.getPosition(users.first { it.userId == userPayingId })
+        }
+
+        binding.userPayingSpinner.setSelection(userPosition)
     }
 
-    private fun setUpUsersPaidForListView(users: List<Profile>) {
+    private fun setUpUsersPaidForListView(users: List<Profile>, usersPaidFor: Map<String, String>? = null) {
         val dataAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_multiple_choice, users)
         binding.usersPaidForList.choiceMode = ListView.CHOICE_MODE_MULTIPLE
         binding.usersPaidForList.adapter = dataAdapter
 
-        for (i in users.indices) {
-            binding.usersPaidForList.setItemChecked(i, true)
-        }
-    }
-
-    private fun setUp(billId: String) {
-        try {
-            setUpDatePickerDialog()
-
-            expenseCollectionRef = billCollectionRef.document(billId).collection("expenses")
-
-            billCollectionRef.document(billId).get().addOnSuccessListener {
-                bill = it.toObject(Bill::class.java)!!
-                val users = getBillUsers(bill)
-
-                setUpUserPayingSpinner(users)
-                setUpUsersPaidForListView(users)
+        if (usersPaidFor == null) {
+            users.indices.forEach {
+                binding.usersPaidForList.setItemChecked(it, true)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            if (e is CancellationException) throw e
+        } else {
+            users.filter { user ->
+                user.userId in usersPaidFor.keys
+            }.forEach {
+                val position = dataAdapter.getPosition(it)
+                binding.usersPaidForList.setItemChecked(position, true)
+            }
         }
     }
 
