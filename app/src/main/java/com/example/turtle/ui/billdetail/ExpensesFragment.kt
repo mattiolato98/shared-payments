@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
+import com.example.turtle.R
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpensesBinding
@@ -20,7 +21,6 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.math.RoundingMode
 
 const val TAG = "BILL_DETAIL"
 
@@ -111,7 +111,10 @@ class ExpensesFragment: Fragment() {
     }
 
     private fun navigateToAddExpense() {
-        val action = BillDetailFragmentDirections.navigateToAddExpense(bill.documentId!!)
+        val action = BillDetailFragmentDirections.navigateToAddExpense(
+            billId = bill.documentId!!,
+            title = resources.getString(R.string.new_expense)
+        )
         navigateToDirection(action)
     }
 
