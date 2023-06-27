@@ -1,8 +1,8 @@
 package com.example.turtle.ui.billdetail
 
+import android.app.AlertDialog
 import android.graphics.Typeface
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.Menu
@@ -24,6 +24,8 @@ import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
 import com.example.turtle.databinding.FragmentBillDetailBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 open class BillDetailFragment: Fragment() {
@@ -34,6 +36,8 @@ open class BillDetailFragment: Fragment() {
 
     private lateinit var expensesFragment: ExpensesFragment
     private lateinit var balanceFragment: BalanceFragment
+
+    private val billCollectionRef = Firebase.firestore.collection("bills")
 
     private val tabs: List<LinearLayout> get() = binding.run {
         listOf(binding.expensesNavigation, binding.balanceNavigation)
@@ -142,6 +146,33 @@ open class BillDetailFragment: Fragment() {
         findNavController().navigate(action)
     }
 
+    private fun showDeleteDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Bill")
+            .setMessage("Are you sure you want to delete the bill? The action is not reversible!")
+            .setPositiveButton("Delete") { dialog, _ ->
+                dialog.cancel()
+                billCollectionRef.document(args.billId).delete()
+                    .addOnSuccessListener {
+                        Snackbar.make(
+                            requireView(),
+                            "Bill successfully deleted",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                        findNavController().navigateUp()
+                    }
+                    .addOnFailureListener {
+                        Snackbar.make(
+                            requireView(),
+                            "An unexpected error occurred while deleting the item. Retry later",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun setupMenuProvider() {
         val menuHost = requireActivity()
         menuHost.addMenuProvider(
@@ -153,7 +184,7 @@ open class BillDetailFragment: Fragment() {
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                     when (menuItem.itemId) {
                         R.id.edit_bill -> navigateToEditBill()
-                        R.id.delete_bill -> Snackbar.make(requireView(), "Delete", Snackbar.LENGTH_SHORT).show()
+                        R.id.delete_bill -> showDeleteDialog()
                         else -> return false
                     }
 
