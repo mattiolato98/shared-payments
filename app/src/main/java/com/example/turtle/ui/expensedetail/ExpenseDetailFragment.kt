@@ -31,7 +31,7 @@ import java.util.Locale
 const val TAG = "EXPENSE_DETAIL"
 
 
-class ExpenseDetailFragment: Fragment(), MenuProvider {
+class ExpenseDetailFragment: Fragment() {
     private var _binding: FragmentExpenseDetailBinding? = null
     private val binding get() = _binding!!
 
@@ -53,13 +53,12 @@ class ExpenseDetailFragment: Fragment(), MenuProvider {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentExpenseDetailBinding.inflate(inflater, container, false)
+        setupMenuProvider()
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         expenseCollectionRef = billCollectionRef.document(args.billId).collection("expenses")
         setUp(args.expenseId)
@@ -112,16 +111,25 @@ class ExpenseDetailFragment: Fragment(), MenuProvider {
         _binding = null
     }
 
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.expense_options, menu)
+    private fun setupMenuProvider() {
+        val menuHost = requireActivity()
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.expense_options, menu)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.edit_expense -> null
+                        R.id.delete_expense -> null
+                        else -> return false
+                    }
+
+                    return true
+                }
+            }, viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
     }
 
-    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        when (menuItem.itemId) {
-            R.id.edit_expense -> null
-            R.id.delete_expense -> null
-        }
-
-        return true
-    }
 }
