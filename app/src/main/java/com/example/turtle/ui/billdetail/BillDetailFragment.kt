@@ -28,7 +28,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 
-open class BillDetailFragment: Fragment() {
+class BillDetailFragment: Fragment() {
     private var _binding: FragmentBillDetailBinding? = null
     private val binding get() = _binding!!
 
