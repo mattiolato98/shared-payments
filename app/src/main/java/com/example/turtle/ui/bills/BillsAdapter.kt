@@ -17,7 +17,6 @@ import com.squareup.picasso.Picasso
 
 class BillsAdapter(
     private val onClickListener: (Bill) -> Unit,
-    private val onLongClickListener: (Bill) -> Boolean
 ): RecyclerView.Adapter<BillsAdapter.BillsViewHolder>() {
 
     inner class BillsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -77,7 +76,6 @@ class BillsAdapter(
             }
 
             cardView.setOnClickListener { onClickListener(bill) }
-            cardView.setOnLongClickListener { onLongClickListener(bill) }
         }
 
         bill.users?.let { users ->
