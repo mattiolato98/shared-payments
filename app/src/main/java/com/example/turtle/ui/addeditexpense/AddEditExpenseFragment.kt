@@ -184,9 +184,13 @@ class AddEditExpenseFragment: Fragment() {
 
     private suspend fun updateExpense(expenseId: String, newExpense: Expense) {
         expenseCollectionRef.document(expenseId).set(
-            newExpense,
+            newExpense.copy(usersPaidFor = mutableMapOf()),
             SetOptions.merge()
         ).await()
+
+        // usersPaidFor field updated separately, since it needs to be overwritten rather than merged
+        expenseCollectionRef.document(expenseId).update("usersPaidFor", newExpense.usersPaidFor)
+
         Snackbar.make(requireView(), "Expense information updated", Snackbar.LENGTH_SHORT).show()
     }
 
