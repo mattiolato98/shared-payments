@@ -9,13 +9,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.turtle.R
 import com.example.turtle.TAG
 import com.example.turtle.data.Bill
+import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentBillsBinding
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 class BillsFragment : Fragment() {
@@ -53,19 +57,17 @@ class BillsFragment : Fragment() {
         subscribeToRealtimeUpdates()
     }
 
-    private fun navigateToAddBill() {
-        val action = BillsFragmentDirections.navigateToAddBill()
-        findNavController().navigate(action)
+    private fun longClick(bill: Bill): Boolean {
+//        Snackbar.make(requireView(), "Long clicked ${bill.title}", Snackbar.LENGTH_SHORT).show()
+        return true
     }
 
-//    private fun newBill(bill: Bill) = viewLifecycleOwner.lifecycleScope.launch {
-//        try {
-//            billCollectionRef.add(bill).await()
-//            Toast.makeText(requireContext(), "Bill saved.", Toast.LENGTH_SHORT).show()
-//        } catch (e: Exception) {
-//            Log.e(TAG, e.message.toString())
-//        }
-//    }
+    private fun navigateToAddBill() {
+        val action = BillsFragmentDirections.navigateToAddBill(
+            title = resources.getString(R.string.new_bill)
+        )
+        findNavController().navigate(action)
+    }
 
     private fun navigateToBillDetail(bill: Bill) {
         val action = BillsFragmentDirections.navigateToBillDetail(
