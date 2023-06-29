@@ -274,6 +274,21 @@ class AddEditExpenseFragment: Fragment() {
                 binding.usersPaidForList.setItemChecked(position, true)
             }
         }
+
+        setUpUsersPaidForHeight(dataAdapter)
+    }
+
+    private fun setUpUsersPaidForHeight(dataAdapter: ArrayAdapter<Profile>) {
+        var total = 0
+        for (i in 0 until dataAdapter.count) {
+            val listItem = dataAdapter.getView(i, null, binding.usersPaidForList)
+            listItem.measure(0, 0)
+            total += listItem.measuredHeight + 50
+        }
+
+        val params = binding.usersPaidForList.layoutParams
+        params.height = total + (binding.usersPaidForList.dividerHeight * (dataAdapter.count))
+        binding.usersPaidForList.layoutParams = params
     }
 
     private fun getBillUsers(bill: Bill): List<Profile> = bill.users!!

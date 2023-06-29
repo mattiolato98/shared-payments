@@ -4,16 +4,17 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
                 android:padding="16dp">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -35,7 +36,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_gravity="center_vertical">
+                    android:layout_gravity="center_vertical"
+                    android:baselineAligned="false">
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/field_amount_layout"
                         android:layout_width="0dp"
@@ -92,7 +94,7 @@
                     android:paddingStart="8dp"
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="5dp"
-                    android:text="Paid for" />
+                    android:text="@string/paid_for" />
 
                 <ListView
                     android:id="@+id/users_paid_for_list"
@@ -102,7 +104,7 @@
             </LinearLayout>
 
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/save_expense_button"
