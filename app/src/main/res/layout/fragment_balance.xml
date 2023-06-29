@@ -1,34 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingHorizontal="16dp">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/users_balance"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="5dp" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/refunds_title"
-        android:text="@string/refunds"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/users_balance"
-        android:layout_marginTop="30dp"
-        android:textStyle="bold"
-        android:textSize="16sp" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/users_balance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="5dp" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/refunds"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/refunds_title"
-        android:layout_marginTop="5dp" />
+        <TextView
+            android:id="@+id/refunds_title"
+            android:text="@string/refunds"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/users_balance"
+            android:layout_marginTop="60dp"
+            android:textStyle="bold"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/refunds"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/refunds_title"
+            android:layout_marginTop="5dp" />
+
+    </LinearLayout>
+
+</ScrollView>
