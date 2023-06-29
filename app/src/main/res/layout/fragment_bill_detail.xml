@@ -6,82 +6,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <FrameLayout
-        android:id="@+id/container"
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="90" />
+        android:layout_weight="90"/>
 
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorPrimaryDark"
-        app:cardElevation="4dp"
-        app:cardCornerRadius="0dp"
-        app:strokeWidth="10dp">
-        <LinearLayout
-            android:id="@+id/bottom_navigation"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:backgroundTint="?attr/colorPrimaryDark"
+            android:elevation="4dp"
+            app:tabTextAppearance="@style/TabLayoutStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-            <LinearLayout
-                android:id="@+id/expenses_navigation"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="100"
-                android:paddingTop="10dp"
-                android:paddingBottom="5dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground">
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:scaleType="centerCrop"
-                    android:paddingBottom="3dp"
-                    android:scaleX="0.9"
-                    android:scaleY="0.9"
-                    android:src="@drawable/receipt_long_material" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/expenses"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/balance_navigation"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="100"
-                android:paddingTop="10dp"
-                android:paddingBottom="5dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground">
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:scaleType="centerCrop"
-                    android:paddingBottom="3dp"
-                    android:scaleX="0.9"
-                    android:scaleY="0.9"
-                    android:src="@drawable/account_balance_material" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/balance"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+            app:tabIndicatorGravity="top" />
 
 </LinearLayout>
