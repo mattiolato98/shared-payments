@@ -41,6 +41,10 @@
         <item name="cardElevation">0dp</item>
         <item name="cardCornerRadius">15dp</item>
     </style>
+    <style name="TabLayoutStyle" parent="Widget.MaterialComponents.TabLayout">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
     <!-- Base application theme. -->
     <style name="Theme.Turtle.Base" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
@@ -49,7 +53,6 @@
         <item name="materialButtonStyle">@style/AppButton</item>
         <item name="floatingActionButtonStyle">@style/FabStyle</item>
         <item name="colorAccent">?attr/colorPrimary</item>
-
     </style>
 
     <!--  Light application theme  -->
