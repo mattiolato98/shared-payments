@@ -35,6 +35,7 @@
     <string name="refunds">Refunds</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="paid_for">Paid for</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
