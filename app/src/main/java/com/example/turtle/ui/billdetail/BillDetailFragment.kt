@@ -30,8 +30,6 @@ class BillDetailFragment: Fragment() {
 
     private val args: BillDetailFragmentArgs by navArgs()
 
-    private val billCollectionRef = Firebase.firestore.collection("bills")
-
     private lateinit var billDetailPagerAdapter: BillDetailPagerAdapter
     private lateinit var viewPager: ViewPager
 
@@ -41,69 +39,13 @@ class BillDetailFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentBillDetailBinding.inflate(inflater, container, false)
-        setupMenuProvider()
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpTabLayout()
-    }
-
-    private fun navigateToEditBill() {
-        val action = BillDetailFragmentDirections.navigateToEditBill(
-            args.billId,
-            resources.getString(R.string.edit_bill)
-        )
-        findNavController().navigate(action)
-    }
-
-    private fun showDeleteDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Delete Bill")
-            .setMessage("Are you sure you want to delete the bill? The action is not reversible!")
-            .setPositiveButton("Delete") { dialog, _ ->
-                dialog.cancel()
-                billCollectionRef.document(args.billId).delete()
-                    .addOnSuccessListener {
-                        Snackbar.make(
-                            requireView(),
-                            "Bill successfully deleted",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                        findNavController().navigateUp()
-                    }
-                    .addOnFailureListener {
-                        Snackbar.make(
-                            requireView(),
-                            "An unexpected error occurred while deleting the item. Retry later",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                    }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun setupMenuProvider() {
-        val menuHost = requireActivity()
-        menuHost.addMenuProvider(
-            object : MenuProvider {
-                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                    menuInflater.inflate(R.menu.bill_options, menu)
-                }
-
-                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    when (menuItem.itemId) {
-                        R.id.edit_bill -> navigateToEditBill()
-                        R.id.delete_bill -> showDeleteDialog()
-                        else -> return false
-                    }
-
-                    return true
-                }
-            }, viewLifecycleOwner, Lifecycle.State.RESUMED
-        )
     }
 
     private fun setUpTabLayout() {

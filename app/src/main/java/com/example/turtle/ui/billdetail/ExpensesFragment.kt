@@ -1,12 +1,18 @@
 package com.example.turtle.ui.billdetail
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
@@ -14,6 +20,7 @@ import com.example.turtle.R
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpensesBinding
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
@@ -45,6 +52,7 @@ class ExpensesFragment: Fragment() {
     ): View {
         _binding = FragmentExpensesBinding.inflate(inflater, container, false)
         billId = this.requireArguments().getString("billId")!!
+        setupMenuProvider()
         return binding.root
     }
 
@@ -99,6 +107,61 @@ class ExpensesFragment: Fragment() {
     private fun setTotals() {
         binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid)
         binding.groupTotal.text = bill.groupTotal()
+    }
+
+    private fun setupMenuProvider() {
+        val menuHost = requireActivity()
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.bill_options, menu)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.edit_bill -> navigateToEditBill()
+                        R.id.delete_bill -> showDeleteDialog()
+                        else -> return false
+                    }
+
+                    return true
+                }
+            }, viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
+    }
+
+    private fun deleteBill() = viewLifecycleOwner.lifecycleScope.launch {
+        val msg = try {
+            billCollectionRef.document(billId).delete().await()
+            "Bill successfully deleted"
+        } catch (e: Exception) {
+            Log.d(TAG, e.message.toString())
+            if (e is CancellationException) throw e
+            "An unexpected error occurred while deleting the item. Retry later"
+        }
+
+        Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
+        findNavController().navigateUp()
+    }
+
+    private fun showDeleteDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Bill")
+            .setMessage("Are you sure you want to delete the bill? The action is not reversible!")
+            .setPositiveButton("Delete") { dialog, _ ->
+                deleteBill()
+                dialog.cancel()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun navigateToEditBill() {
+        val action = BillDetailFragmentDirections.navigateToEditBill(
+            billId,
+            resources.getString(R.string.edit_bill)
+        )
+        findNavController().navigate(action)
     }
 
     private fun navigateToExpenseDetail(expense: Expense) {
