@@ -3,10 +3,16 @@ package com.example.turtle.ui.bills
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.turtle.R
@@ -34,6 +40,7 @@ class BillsFragment : Fragment() {
 
     private val billCollectionRef = Firebase.firestore.collection("bills")
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
+    private lateinit var currentUserProfile: Profile
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,6 +48,7 @@ class BillsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentBillsBinding.inflate(inflater, container, false)
+        setupMenuProvider()
         return binding.root
     }
 
@@ -79,7 +87,7 @@ class BillsFragment : Fragment() {
 
     private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
         val currentUserProfileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
-        val currentUserProfile = currentUserProfileDoc.toObject(Profile::class.java)
+        currentUserProfile = currentUserProfileDoc.toObject(Profile::class.java)
 
         val billQuery =  billCollectionRef
             .whereArrayContains("users", currentUserProfile)
@@ -96,6 +104,32 @@ class BillsFragment : Fragment() {
                 billsAdapter.differ.submitList(billsList)
             }
         }
+    }
+
+    private fun navigateToProfile() {
+        val action = BillsFragmentDirections.navigateToProfile(currentUserProfile.username!!)
+        findNavController().navigate(action)
+    }
+
+    private fun setupMenuProvider() {
+        val menuHost = requireActivity()
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.home_options, menu)
+                    (menu as MenuBuilder).setOptionalIconsVisible(true)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.open_profile -> navigateToProfile()
+                        else -> return false
+                    }
+
+                    return true
+                }
+            }, viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
     }
 
     override fun onDestroyView() {
