@@ -177,16 +177,16 @@ class AddEditExpenseFragment: Fragment() {
         findNavController().navigateUp()
     }
 
-    private suspend fun createNewExpense(expense: Expense) {
-        expenseCollectionRef.add(expense).await()
+    private fun createNewExpense(expense: Expense) {
+        expenseCollectionRef.add(expense)
         Snackbar.make(requireView(), "Expense saved", Snackbar.LENGTH_SHORT).show()
     }
 
-    private suspend fun updateExpense(expenseId: String, newExpense: Expense) {
+    private fun updateExpense(expenseId: String, newExpense: Expense) {
         expenseCollectionRef.document(expenseId).set(
             newExpense.copy(usersPaidFor = mutableMapOf()),
             SetOptions.merge()
-        ).await()
+        )
 
         // usersPaidFor field updated separately, since it needs to be overwritten rather than merged
         expenseCollectionRef.document(expenseId).update("usersPaidFor", newExpense.usersPaidFor)

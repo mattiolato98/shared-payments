@@ -132,16 +132,16 @@ class AddEditBillFragment: Fragment() {
         findNavController().navigateUp()
     }
 
-    private suspend fun createNewBill(bill: Bill) {
-        billCollectionRef.add(bill).await()
+    private fun createNewBill(bill: Bill) {
+        billCollectionRef.add(bill)
         Snackbar.make(requireView(), "Bill saved", Snackbar.LENGTH_SHORT).show()
     }
 
-    private suspend fun updateBill(billId: String, newBill: Bill) {
+    private fun updateBill(billId: String, newBill: Bill) {
         billCollectionRef.document(billId).set(
             newBill,
             SetOptions.merge()
-        ).await()
+        )
         Snackbar.make(requireView(), "Bill information updated", Snackbar.LENGTH_SHORT).show()
     }
 
