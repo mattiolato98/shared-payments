@@ -36,6 +36,9 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="paid_for">Paid for</string>
+    <string name="profile">Profile</string>
+    <string name="logout">Logout</string>
+    <string name="delete_account">Delete account</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
