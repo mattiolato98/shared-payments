@@ -39,6 +39,7 @@
     <string name="profile">Profile</string>
     <string name="logout">Logout</string>
     <string name="delete_account">Delete account</string>
+    <string name="order_by">Order by</string>
 
 
     <!--    &lt;!&ndash; Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). &ndash;&gt;-->
