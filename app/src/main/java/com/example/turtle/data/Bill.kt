@@ -50,7 +50,7 @@ data class Bill(
 
         users!!.forEach { user ->
             val userBalance = userCreditTotal(user.userId!!) - userDebitTotal(user.userId!!)
-            balance[user.email!!.split("@")[0]] = userBalance.setScale(2, RoundingMode.HALF_UP).toString()
+            balance[user.username!!] = userBalance.setScale(2, RoundingMode.HALF_UP).toString()
         }
 
         return balance

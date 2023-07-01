@@ -11,12 +11,13 @@ data class Profile (
     var userId: String? = null,
     var displayName: String? = null,
     var email: String? = null,
+    var username: String? = null,
     var profilePictureUrl: String? = null,
 
     @ServerTimestamp
     var createDateTime: Date? = null,
 ) {
     override fun toString(): String {
-        return email!!.split("@")[0]
+        return username!!
     }
 }

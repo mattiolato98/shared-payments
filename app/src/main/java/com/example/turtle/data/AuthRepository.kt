@@ -112,6 +112,7 @@ class AuthRepository {
                 userId = uid,
                 displayName = displayName,
                 email = email,
+                username = email!!.split("@")[0],
                 profilePictureUrl = photoUrl?.toString()
             )
             profileCollectionRef.add(profile).await()
