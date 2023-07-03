@@ -62,7 +62,7 @@ class ProfileFragment : Fragment() {
             binding.profileImage.setImageResource(R.drawable.profile_material)
         }
 
-        binding.displayName.text = profile.displayName
+        binding.displayName.text = profile.displayName?: profile.username
         binding.email.text = profile.email
     }
 
