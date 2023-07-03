@@ -67,7 +67,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun signOut() = viewLifecycleOwner.lifecycleScope.launch {
-        oneTapClient.signOut().await()
+        oneTapClient.signOut()
         auth.signOut()
 
         startActivityAuth()
