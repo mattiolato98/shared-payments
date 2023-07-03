@@ -35,19 +35,21 @@ const val TAG = "AUTH"
 
 abstract class BaseAuthFragment: Fragment() {
 
-    abstract var fieldEmail: TextInputEditText
-    abstract var fieldEmailLayout: TextInputLayout
-    abstract var fieldPassword: TextInputEditText
-    abstract var fieldPasswordLayout: TextInputLayout
-    abstract var formErrorMessage: TextView
-    abstract var progressBar: ProgressBar
-    abstract var googleButton: Button
+    abstract val fieldEmail: TextInputEditText
+    abstract val fieldEmailLayout: TextInputLayout
+    abstract val fieldPassword: TextInputEditText
+    abstract val fieldPasswordLayout: TextInputLayout
+    abstract val formErrorMessage: TextView
+    abstract val progressBar: ProgressBar
+    abstract val googleButton: Button
 
     val viewModel: AuthViewModel by activityViewModels()
     private lateinit var oneTapSignInLauncher: ActivityResultLauncher<IntentSenderRequest>
     private lateinit var oneTapClient: SignInClient
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         oneTapClient = Identity.getSignInClient(requireActivity())
 
         oneTapSignInLauncher = registerForActivityResult(
@@ -64,8 +66,6 @@ abstract class BaseAuthFragment: Fragment() {
         collectLifecycleFlow(viewModel.state) { state ->
             checkState(state)
         }
-
-        super.onViewCreated(view, savedInstanceState)
     }
 
     private fun checkState(state: AuthState) {
@@ -105,7 +105,7 @@ abstract class BaseAuthFragment: Fragment() {
         }
     }
 
-    fun initUiListeners() {
+    open fun initUiListeners() {
         googleButton.setOnClickListener{ launchGoogleSignIn() }
     }
 

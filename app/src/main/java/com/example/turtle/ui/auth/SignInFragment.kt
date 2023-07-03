@@ -18,13 +18,13 @@ class SignInFragment: BaseAuthFragment() {
     private var _binding: FragmentSignInBinding? = null
     private val binding get() = _binding!!
 
-    override lateinit var fieldEmail: TextInputEditText
-    override lateinit var fieldEmailLayout: TextInputLayout
-    override lateinit var fieldPassword: TextInputEditText
-    override lateinit var fieldPasswordLayout: TextInputLayout
-    override lateinit var formErrorMessage: TextView
-    override lateinit var progressBar: ProgressBar
-    override lateinit var googleButton: Button
+    override val fieldEmail get() = binding.fieldEmail
+    override val fieldEmailLayout get() = binding.fieldEmailLayout
+    override val fieldPassword get() = binding.fieldPassword
+    override val fieldPasswordLayout get() = binding.fieldPasswordLayout
+    override val formErrorMessage get() = binding.formErrorMessage
+    override val progressBar get() = binding.progressBar
+    override val googleButton get() = binding.googleSignInButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,14 +37,13 @@ class SignInFragment: BaseAuthFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initUiComponents()
         initUiListeners()
+    }
 
-        with(binding) {
-            signInButton.setOnClickListener { signInWithEmailAndPassword() }
-            toSignUp.setOnClickListener { navigateToSignUp() }
-        }
+    override fun initUiListeners() {
+        super.initUiListeners()
+        binding.signInButton.setOnClickListener { signInWithEmailAndPassword() }
+        binding.toSignUp.setOnClickListener { navigateToSignUp() }
     }
 
     private fun signInWithEmailAndPassword() {
@@ -56,16 +55,6 @@ class SignInFragment: BaseAuthFragment() {
     private fun navigateToSignUp() {
         val action = SignInFragmentDirections.navigateToSignUp()
         findNavController().navigate(action)
-    }
-
-    private fun initUiComponents() {
-        fieldEmail = binding.fieldEmail
-        fieldEmailLayout = binding.fieldEmailLayout
-        fieldPassword = binding.fieldPassword
-        fieldPasswordLayout = binding.fieldPasswordLayout
-        formErrorMessage = binding.formErrorMessage
-        progressBar = binding.progressBar
-        googleButton = binding.googleSignInButton
     }
 
     override fun onDestroyView() {
