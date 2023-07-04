@@ -34,6 +34,11 @@ open class AuthViewModel: ViewModel() {
         onAuthResult(result)
     }
 
+    suspend fun getSignedInUserProfile(): Profile? {
+        return authRepository.getSignedInUser()
+    }
+
+
     fun isUserLoggedIn(): Boolean {
         return authRepository.isUserLoggedIn()
     }

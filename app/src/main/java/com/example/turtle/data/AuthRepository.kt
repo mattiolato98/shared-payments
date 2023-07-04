@@ -75,8 +75,22 @@ class AuthRepository {
     }
 
     suspend fun getSignedInUser(): Profile? = auth.currentUser?.run {
-        val doc = profileCollectionRef.document(uid).get().await()
-        return doc.toObject(Profile::class.java)
+        return@run getSignedInUser(uid)
+    }
+
+    private suspend fun getSignedInUser(userId: String): Profile? {
+        return try {
+            val doc = profileCollectionRef.document(userId).get().await()
+            doc.toObject(Profile::class.java)
+        } catch (e: Exception) {
+            Log.d(TAG, e.message.toString())
+            if (e is CancellationException) throw e
+            null
+        }
+    }
+
+    fun getSignedInUserId(): String? {
+        return auth.currentUser?.uid
     }
 
     fun isUserLoggedIn(): Boolean {
