@@ -24,14 +24,14 @@ class AuthActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (viewModel.isUserLoggedIn() && auth.currentUser != null) {
-            lifecycleScope.launch {
-                settingsPreferences.setUserInfo(
-                    auth.currentUser!!.uid,
-                    auth.currentUser!!.email!!.split("@")[0],
-                    auth.currentUser!!.email!!,
-                )
-                startActivityMain()
+        if (viewModel.isUserLoggedIn()) {
+            auth.currentUser?.run {
+                lifecycleScope.launch {
+                    settingsPreferences.setUserInfo(uid, email!!.split("@")[0], email!!)
+                    startActivityMain()
+                }
+            } ?:run {
+                initAuthActivity()
             }
         } else {
             initAuthActivity()
