@@ -12,16 +12,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
+import com.example.turtle.SettingsPreferences
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddEditBillBinding
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -40,11 +41,15 @@ class AddEditBillFragment: Fragment() {
     private val billCollectionRef = Firebase.firestore.collection("bills")
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
 
-    private var bill: Bill? = null
+    private var signedInUser = mutableMapOf(
+        "userId" to "",
+        "email" to ""
+    )
 
+    private var bill: Bill? = null
     private var isNewBill: Boolean = true
 
-    private val auth = Firebase.auth
+    private lateinit var settingsPreferences: SettingsPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,13 +57,14 @@ class AddEditBillFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAddEditBillBinding.inflate(inflater, container, false)
+        settingsPreferences = SettingsPreferences(requireContext())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setUp(args.billId)
+        initAddEditBillFragment(args.billId)
 
         with(binding) {
             saveBillButton.setOnClickListener { saveBill() }
@@ -67,7 +73,10 @@ class AddEditBillFragment: Fragment() {
         }
     }
 
-    private fun setUp(billId: String?) = viewLifecycleOwner.lifecycleScope.launch {
+    private fun initAddEditBillFragment(billId: String?) = viewLifecycleOwner.lifecycleScope.launch {
+        signedInUser["userId"] = settingsPreferences.getUserId.first()
+        signedInUser["email"] = settingsPreferences.getEmail.first()
+
         billId?.also {
             bill = try {
                 val doc = billCollectionRef.document(billId).get().await()
@@ -81,7 +90,7 @@ class AddEditBillFragment: Fragment() {
             isNewBill = false
             fillForm(bill!!)
 
-            for (user in bill!!.users!!.filter { it.userId != auth.currentUser?.uid }) {
+            for (user in bill!!.users!!.filter { it.userId != signedInUser["userId"] }) {
                 val userEmail = user.email!!
                 val profileDoc = profileCollectionRef.whereEqualTo("email", userEmail).get().await().first()
                 val profile = profileDoc.toObject(Profile::class.java)
@@ -105,7 +114,7 @@ class AddEditBillFragment: Fragment() {
     }
 
     private fun saveBill() = viewLifecycleOwner.lifecycleScope.launch {
-        val profileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
+        val profileDoc = profileCollectionRef.whereEqualTo("userId", signedInUser["userId"]).get().await().first()
         val currentUserProfile = profileDoc.toObject(Profile::class.java)
 
         val title = binding.fieldTitle.text.toString()
@@ -146,7 +155,7 @@ class AddEditBillFragment: Fragment() {
     }
 
     private fun billObject(title: String, description: String?, users: List<Profile>) = Bill(
-        userOwnerId = auth.currentUser?.uid!!,
+        userOwnerId = signedInUser["userId"],
         usersId = users.map { it.userId!! },
         users = users,
         title = title,
@@ -165,7 +174,7 @@ class AddEditBillFragment: Fragment() {
                 Snackbar.LENGTH_SHORT
             ).show()
         } else {
-            if (friendEmail == auth.currentUser?.email) {
+            if (friendEmail == signedInUser["email"]) {
                 Snackbar.make(requireView(), "You cannot add yourself.", Snackbar.LENGTH_SHORT).show()
                 return@launch
             }
