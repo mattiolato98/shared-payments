@@ -86,11 +86,10 @@ class BillsFragment : Fragment() {
     }
 
     private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
-        val currentUserProfileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
-        currentUserProfile = currentUserProfileDoc.toObject(Profile::class.java)
+        userId = settingPreferences.getUserId.first()
 
         val billQuery =  billCollectionRef
-            .whereArrayContains("users", currentUserProfile)
+            .whereArrayContains("usersId", userId)
             .orderBy("createDateTime", Query.Direction.DESCENDING)
 
         billQuery.addSnapshotListener { querySnapshot, firebaseFirestoreException ->

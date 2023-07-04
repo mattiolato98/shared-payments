@@ -145,8 +145,9 @@ class AddEditBillFragment: Fragment() {
         Snackbar.make(requireView(), "Bill information updated", Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun billObject(title: String, description: String?, users: List<Profile>?) = Bill(
+    private fun billObject(title: String, description: String?, users: List<Profile>) = Bill(
         userOwnerId = auth.currentUser?.uid!!,
+        usersId = users.map { it.userId!! },
         users = users,
         title = title,
         description = description,

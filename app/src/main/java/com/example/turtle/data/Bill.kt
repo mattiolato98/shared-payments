@@ -12,6 +12,8 @@ data class Bill(
     var documentId: String? = null,
 
     var userOwnerId: String? = null,
+
+    var usersId: List<String>? = null,
     var users: List<Profile>? = null,
 
     var title: String = "",
@@ -23,6 +25,7 @@ data class Bill(
     var expenses: List<Expense>? = null,
 
     ) {
+
     fun groupTotal(): String {
         var result: BigDecimal = BigDecimal.ZERO
 
