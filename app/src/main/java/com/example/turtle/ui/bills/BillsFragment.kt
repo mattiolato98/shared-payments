@@ -16,16 +16,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.turtle.R
+import com.example.turtle.SettingsPreferences
 import com.example.turtle.TAG
 import com.example.turtle.data.Bill
-import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentBillsBinding
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 
 class BillsFragment : Fragment() {
@@ -36,11 +35,11 @@ class BillsFragment : Fragment() {
     private lateinit var billsAdapter: BillsAdapter
     private val viewModel: BillsViewModel by viewModels()
 
-    private val auth = Firebase.auth
+    private lateinit var userId: String
 
     private val billCollectionRef = Firebase.firestore.collection("bills")
-    private val profileCollectionRef = Firebase.firestore.collection("profiles")
-    private lateinit var currentUserProfile: Profile
+
+    private lateinit var settingPreferences: SettingsPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +48,7 @@ class BillsFragment : Fragment() {
     ): View {
         _binding = FragmentBillsBinding.inflate(inflater, container, false)
         setupMenuProvider()
+        settingPreferences = SettingsPreferences(requireContext())
         return binding.root
     }
 
@@ -63,11 +63,6 @@ class BillsFragment : Fragment() {
         }
 
         subscribeToRealtimeUpdates()
-    }
-
-    private fun longClick(bill: Bill): Boolean {
-//        Snackbar.make(requireView(), "Long clicked ${bill.title}", Snackbar.LENGTH_SHORT).show()
-        return true
     }
 
     private fun navigateToAddBill() {
@@ -105,8 +100,9 @@ class BillsFragment : Fragment() {
         }
     }
 
-    private fun navigateToProfile() {
-        val action = BillsFragmentDirections.navigateToProfile(currentUserProfile.username!!)
+    private fun navigateToProfile() = viewLifecycleOwner.lifecycleScope.launch {
+        val username = settingPreferences.getUsername.first()
+        val action = BillsFragmentDirections.navigateToProfile(username)
         findNavController().navigate(action)
     }
 
