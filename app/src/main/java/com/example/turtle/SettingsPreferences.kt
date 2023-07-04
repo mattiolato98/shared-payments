@@ -13,16 +13,19 @@ class SettingsPreferences(private val context: Context) {
 
         private val userId = stringPreferencesKey("userId")
         private val username = stringPreferencesKey("username")
+        private val email = stringPreferencesKey("email")
     }
 
     val getUserId get() = context.dataStore.data.map { it[userId]!! }
     val getUsername get() = context.dataStore.data.map { it[username]!! }
+    val getEmail get() = context.dataStore.data.map { it[email]!! }
 
 
-    suspend fun setUserInfo(profile: Profile) {
+    suspend fun setUserInfo(uid: String, uname: String, userEmail: String) {
         context.dataStore.edit {
-            it[userId] = profile.userId!!
-            it[username] = profile.username!!
+            it[userId] = uid
+            it[username] = uname
+            it[email] = userEmail
         }
     }
 }

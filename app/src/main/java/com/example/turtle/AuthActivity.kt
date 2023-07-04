@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.turtle.databinding.ActivityAuthBinding
 import com.example.turtle.ui.auth.AuthViewModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 
@@ -15,19 +17,24 @@ class AuthActivity: AppCompatActivity() {
     private lateinit var binding: ActivityAuthBinding
     private val viewModel: AuthViewModel by viewModels()
 
-    private val settingPreferences = SettingsPreferences(this)
+    private val auth = Firebase.auth
+
+    private val settingsPreferences = SettingsPreferences(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch {
-            val userProfile = viewModel.getSignedInUserProfile()
-            if (viewModel.isUserLoggedIn() && userProfile != null) {
-                settingPreferences.setUserInfo(userProfile)
+        if (viewModel.isUserLoggedIn() && auth.currentUser != null) {
+            lifecycleScope.launch {
+                settingsPreferences.setUserInfo(
+                    auth.currentUser!!.uid,
+                    auth.currentUser!!.email!!.split("@")[0],
+                    auth.currentUser!!.email!!,
+                )
                 startActivityMain()
-            } else {
-                initAuthActivity()
             }
+        } else {
+            initAuthActivity()
         }
     }
 
