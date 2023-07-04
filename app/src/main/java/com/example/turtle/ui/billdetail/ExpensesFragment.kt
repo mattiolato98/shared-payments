@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
 import com.example.turtle.R
+import com.example.turtle.SettingsPreferences
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpensesBinding
@@ -26,6 +27,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -37,13 +39,13 @@ class ExpensesFragment: Fragment() {
     private var _binding: FragmentExpensesBinding? = null
     private val binding get() = _binding!!
 
-    private val auth = Firebase.auth
-
     private lateinit var expensesAdapter: ExpensesAdapter
 
     private lateinit var billId: String
     private lateinit var bill: Bill
     private val billCollectionRef = Firebase.firestore.collection("bills")
+
+    private lateinit var settingsPreferences: SettingsPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,6 +54,7 @@ class ExpensesFragment: Fragment() {
     ): View {
         _binding = FragmentExpensesBinding.inflate(inflater, container, false)
         billId = this.requireArguments().getString("billId")!!
+        settingsPreferences = SettingsPreferences(requireContext())
         setupMenuProvider()
         return binding.root
     }
@@ -104,8 +107,8 @@ class ExpensesFragment: Fragment() {
         }
     }
 
-    private fun setTotals() {
-        binding.userTotal.text = bill.userTotal(auth.currentUser!!.uid)
+    private fun setTotals() = viewLifecycleOwner.lifecycleScope.launch {
+        binding.userTotal.text = bill.userTotal(settingsPreferences.getUserId.first())
         binding.groupTotal.text = bill.groupTotal()
     }
 
