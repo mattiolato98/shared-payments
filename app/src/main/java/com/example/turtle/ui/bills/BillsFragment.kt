@@ -36,8 +36,6 @@ class BillsFragment : Fragment() {
     private lateinit var billsAdapter: BillsAdapter
     private val viewModel: BillsViewModel by viewModels()
 
-    private lateinit var userId: String
-
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
     private lateinit var settingPreferences: SettingsPreferences
@@ -82,7 +80,7 @@ class BillsFragment : Fragment() {
     }
 
     private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
-        userId = settingPreferences.getUserId.first()
+        val userId = settingPreferences.getUserId.first()
 
         val billQuery =  billCollectionRef
             .whereArrayContains("usersId", userId)
