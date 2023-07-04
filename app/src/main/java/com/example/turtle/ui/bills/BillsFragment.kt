@@ -1,5 +1,6 @@
 package com.example.turtle.ui.bills
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -106,6 +107,7 @@ class BillsFragment : Fragment() {
         findNavController().navigate(action)
     }
 
+    @SuppressLint("RestrictedApi")
     private fun setupMenuProvider() {
         val menuHost = requireActivity()
         menuHost.addMenuProvider(
