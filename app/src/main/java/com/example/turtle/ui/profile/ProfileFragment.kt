@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.turtle.AuthActivity
 import com.example.turtle.R
+import com.example.turtle.SettingsPreferences
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentProfileBinding
 import com.google.android.gms.auth.api.identity.Identity
@@ -18,6 +19,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -26,11 +28,13 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
-    private val auth = Firebase.auth
     private lateinit var oneTapClient: SignInClient
+    private val auth = Firebase.auth
 
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
     private lateinit var profile: Profile
+
+    private lateinit var settingsPreferences: SettingsPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,6 +42,7 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
+        settingsPreferences = SettingsPreferences(requireContext())
         return binding.root
     }
 
@@ -45,13 +50,14 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         oneTapClient = Identity.getSignInClient(requireActivity())
 
-        setUpProfile()
+        initProfileFragment()
 
         binding.signOutButton.setOnClickListener { signOut() }
     }
 
-    private fun setUpProfile() = viewLifecycleOwner.lifecycleScope.launch {
-        val profileDoc = profileCollectionRef.whereEqualTo("userId", auth.currentUser?.uid).get().await().first()
+    private fun initProfileFragment() = viewLifecycleOwner.lifecycleScope.launch {
+        val profileDoc = profileCollectionRef
+            .whereEqualTo("userId", settingsPreferences.getUserId.first()).get().await().first()
         profile = profileDoc.toObject(Profile::class.java)
 
         if (profile.profilePictureUrl != null) {
