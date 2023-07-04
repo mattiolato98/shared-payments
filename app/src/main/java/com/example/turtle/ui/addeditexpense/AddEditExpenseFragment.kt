@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.turtle.SettingsPreferences
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
@@ -25,6 +26,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.math.BigDecimal
@@ -43,8 +45,6 @@ class AddEditExpenseFragment: Fragment() {
     private var _binding: FragmentAddEditExpenseBinding? = null
     private val binding get() = _binding!!
 
-    private val auth = Firebase.auth
-
     private val calendar: Calendar = Calendar.getInstance()
     private val args: AddEditExpenseFragmentArgs by navArgs()
 
@@ -53,8 +53,9 @@ class AddEditExpenseFragment: Fragment() {
     private val billCollectionRef = Firebase.firestore.collection("bills")
 
     private var expense: Expense? = null
-
     private var isNewExpense: Boolean = true
+
+    private lateinit var settingsPreferences: SettingsPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,6 +63,7 @@ class AddEditExpenseFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAddEditExpenseBinding.inflate(inflater, container, false)
+        settingsPreferences = SettingsPreferences(requireContext())
         return binding.root
     }
 
@@ -238,7 +240,8 @@ class AddEditExpenseFragment: Fragment() {
         binding.fieldDate.setText(dateFormat.format(calendar.time))
     }
 
-    private fun setUpUserPayingSpinner(users: List<Profile>, userPayingId: String? = null) {
+    private fun setUpUserPayingSpinner(users: List<Profile>, userPayingId: String? = null) =
+        viewLifecycleOwner.lifecycleScope.launch {
         val dataAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -248,7 +251,7 @@ class AddEditExpenseFragment: Fragment() {
         binding.userPayingSpinner.adapter = dataAdapter
 
         val userPosition = if (userPayingId == null) {
-            dataAdapter.getPosition(users.first { it.userId == auth.currentUser!!.uid })
+            dataAdapter.getPosition(users.first { it.userId == settingsPreferences.getUserId.first() })
 
         } else {
             dataAdapter.getPosition(users.first { it.userId == userPayingId })
