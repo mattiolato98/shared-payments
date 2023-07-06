@@ -20,7 +20,6 @@ import com.example.turtle.data.Expense
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddEditExpenseBinding
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
@@ -35,7 +34,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.math.exp
 
 const val TAG = "ADD_EXPENSE"
 
@@ -149,7 +147,7 @@ class AddEditExpenseFragment: Fragment() {
         val userPayingId = userProfile.userId!!
         val userPayingUsername = userProfile.username!!
 
-        val usersPaidFor = mutableMapOf<String, String>()
+        val usersPaidForId = mutableMapOf<String, String>()
 
         val selectedUsersCount = binding.usersPaidForList.checkedItemCount
 
@@ -162,11 +160,11 @@ class AddEditExpenseFragment: Fragment() {
             if (value) {
                 val userId = (binding.usersPaidForList.getItemAtPosition(key) as Profile).userId!!
                 val userAmount = (amount.divide(BigDecimal(selectedUsersCount), 2, RoundingMode.HALF_UP)).toString()
-                usersPaidFor[userId] = userAmount
+                usersPaidForId[userId] = userAmount
             }
         }
 
-        val expenseObject = expenseObject(title, amount, date, userPayingId, userPayingUsername, usersPaidFor)
+        val expenseObject = expenseObject(title, amount, date, userPayingId, userPayingUsername, usersPaidForId)
 
         try {
             if (isNewExpense)
@@ -192,8 +190,8 @@ class AddEditExpenseFragment: Fragment() {
             SetOptions.merge()
         )
 
-        // usersPaidFor field updated separately, since it needs to be overwritten rather than merged
-        expenseCollectionRef.document(expenseId).update("usersPaidFor", newExpense.usersPaidForId)
+        // usersPaidForId field updated separately, since it needs to be overwritten rather than merged
+        expenseCollectionRef.document(expenseId).update("usersPaidForId", newExpense.usersPaidForId)
 
         Snackbar.make(requireView(), "Expense information updated", Snackbar.LENGTH_SHORT).show()
     }
@@ -204,14 +202,14 @@ class AddEditExpenseFragment: Fragment() {
         date: Date,
         userPayingId: String,
         userPayingUsername: String,
-        usersPaidFor: Map<String, String>
+        usersPaidForId: Map<String, String>
     ): Expense = Expense (
         title = title,
         bigDecimalAmount = amount,
         date = date,
         userPayingId = userPayingId,
         userPayingUsername = userPayingUsername,
-        usersPaidForId = usersPaidFor
+        usersPaidForId = usersPaidForId
     )
 
     private fun setUpDatePickerDialog(expenseDate: Date? = null) {
