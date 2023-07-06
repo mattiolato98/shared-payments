@@ -2,7 +2,6 @@ package com.example.turtle.ui.bills
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -15,15 +14,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.turtle.R
 import com.example.turtle.SettingsPreferences
-import com.example.turtle.TAG
+import com.example.turtle.ViewModelFactory
 import com.example.turtle.data.Bill
 import com.example.turtle.databinding.FragmentBillsBinding
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -34,9 +32,11 @@ class BillsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var billsAdapter: BillsAdapter
-    private val viewModel: BillsViewModel by viewModels()
-
-    private val billCollectionRef = Firebase.firestore.collection("bills")
+    private val viewModel: BillsViewModel by viewModels {
+        ViewModelFactory(
+            requireActivity().application
+        )
+    }
 
     private lateinit var settingPreferences: SettingsPreferences
 
@@ -46,22 +46,45 @@ class BillsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentBillsBinding.inflate(inflater, container, false)
-        setupMenuProvider()
+
         settingPreferences = SettingsPreferences(requireContext())
+        setupMenuProvider()
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initBillsFragment()
+
+        collectBills()
+        collectSnackbar()
+    }
+
+    private fun initBillsFragment() {
         billsAdapter = BillsAdapter { item -> navigateToBillDetail(item)}
+        binding.billsList.adapter = billsAdapter
 
-        with(binding) {
-            newBillButton.setOnClickListener { navigateToAddBill() }
-            billsList.adapter = billsAdapter
+        binding.newBillButton.setOnClickListener { navigateToAddBill() }
+    }
+
+    private fun collectBills() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.bills.collect { bills ->
+                bills?.let {
+                    billsAdapter.differ.submitList(bills)
+                }
+            }
         }
+    }
 
-        subscribeToRealtimeUpdates()
+    private fun collectSnackbar() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.snackbarText.collect { msg ->
+                Snackbar.make(requireView(), msg, Snackbar.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun navigateToAddBill() {
@@ -77,26 +100,6 @@ class BillsFragment : Fragment() {
             bill.title
         )
         findNavController().navigate(action)
-    }
-
-    private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
-        val userId = settingPreferences.getUserId.first()
-
-        val billQuery =  billCollectionRef
-            .whereArrayContains("usersId", userId)
-            .orderBy("createDateTime", Query.Direction.DESCENDING)
-
-        billQuery.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-            firebaseFirestoreException?.let {
-                Log.e(TAG, it.message.toString())
-            }
-            querySnapshot?.let {
-                val billsList = querySnapshot.documents.map { doc ->
-                    doc.toObject(Bill::class.java)
-                }
-                billsAdapter.differ.submitList(billsList)
-            }
-        }
     }
 
     private fun navigateToProfile() = viewLifecycleOwner.lifecycleScope.launch {
