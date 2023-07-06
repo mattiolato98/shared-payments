@@ -2,6 +2,8 @@ package com.example.turtle.data
 
 import android.util.Log
 import com.example.turtle.Resource
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
@@ -148,5 +150,29 @@ class BillRepository {
             }
     }
 
+    private fun DocumentReference.getQuerySnapshotFlow(): Flow<DocumentSnapshot?> {
+        return callbackFlow {
+            val listenerRegistration =
+                addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+                    firebaseFirestoreException?.let {
+                        cancel(
+                            message = "Error fetching data",
+                            cause = firebaseFirestoreException
+                        )
+                        return@addSnapshotListener
+                    }
+                    trySend(documentSnapshot)
+                }
+            awaitClose {
+                listenerRegistration.remove()
+            }
+        }
+    }
 
+    fun <T> DocumentReference.getDataFlow(mapper: (DocumentSnapshot?) -> T): Flow<T> {
+        return getQuerySnapshotFlow()
+            .map {
+                return@map mapper(it)
+            }
+    }
 }
