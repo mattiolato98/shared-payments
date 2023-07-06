@@ -75,12 +75,45 @@ class BillRepository {
         }
     }
 
+    fun getExpense(billId: String, expenseId: String): Flow<Resource<Expense>> {
+        val msg = "An error occurred while fetching the data. Try again later"
+
+        return billCollectionRef
+            .document(billId)
+            .collection("expenses")
+            .document(expenseId).getDataFlow { documentSnapshot ->
+                if (documentSnapshot != null) {
+                    val expense = documentSnapshot.toObject(Expense::class.java)!!
+                    Resource.Success(expense)
+                } else {
+                    Resource.Error(msg)
+                }
+            }
+    }
+
     fun deleteBill(billId: String): Resource<Unit> {
         return try {
             billCollectionRef.document(billId).delete()
             Resource.Success(Unit, "Bill successfully deleted")
         } catch (e: Exception) {
-            Log.d(com.example.turtle.ui.billdetail.TAG, e.message.toString())
+            Log.d(tag, e.message.toString())
+            if (e is CancellationException) throw e
+            Resource.Error(
+                "An unexpected error occurred while deleting the item. Retry later"
+            )
+        }
+    }
+
+    fun deleteExpense(billId: String, expenseId: String): Resource<Unit> {
+        return try {
+            billCollectionRef
+                .document(billId)
+                .collection("expenses")
+                .document(expenseId)
+                .delete()
+            Resource.Success(Unit, "Expense successfully deleted")
+        } catch (e: Exception) {
+            Log.d(tag, e.message.toString())
             if (e is CancellationException) throw e
             Resource.Error(
                 "An unexpected error occurred while deleting the item. Retry later"
