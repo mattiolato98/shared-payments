@@ -97,7 +97,7 @@ class AddEditExpenseFragment: Fragment() {
 
             setUpDatePickerDialog(expense!!.date)
             setUpUserPayingSpinner(users, expense!!.userPayingId)
-            setUpUsersPaidForListView(users, expense!!.usersPaidFor)
+            setUpUsersPaidForListView(users, expense!!.usersPaidForId)
         }
     }
 
@@ -145,7 +145,9 @@ class AddEditExpenseFragment: Fragment() {
                     "${calendar.get(Calendar.SECOND)}"
         )!!
 
-        val userPayingId = (binding.userPayingSpinner.selectedItem as Profile).userId!!
+        val userProfile = binding.userPayingSpinner.selectedItem as Profile
+        val userPayingId = userProfile.userId!!
+        val userPayingUsername = userProfile.username!!
 
         val usersPaidFor = mutableMapOf<String, String>()
 
@@ -164,7 +166,7 @@ class AddEditExpenseFragment: Fragment() {
             }
         }
 
-        val expenseObject = expenseObject(title, amount, date, userPayingId, usersPaidFor)
+        val expenseObject = expenseObject(title, amount, date, userPayingId, userPayingUsername, usersPaidFor)
 
         try {
             if (isNewExpense)
@@ -186,12 +188,12 @@ class AddEditExpenseFragment: Fragment() {
 
     private fun updateExpense(expenseId: String, newExpense: Expense) {
         expenseCollectionRef.document(expenseId).set(
-            newExpense.copy(usersPaidFor = mutableMapOf()),
+            newExpense.copy(usersPaidForId = mutableMapOf()),
             SetOptions.merge()
         )
 
         // usersPaidFor field updated separately, since it needs to be overwritten rather than merged
-        expenseCollectionRef.document(expenseId).update("usersPaidFor", newExpense.usersPaidFor)
+        expenseCollectionRef.document(expenseId).update("usersPaidFor", newExpense.usersPaidForId)
 
         Snackbar.make(requireView(), "Expense information updated", Snackbar.LENGTH_SHORT).show()
     }
@@ -201,13 +203,15 @@ class AddEditExpenseFragment: Fragment() {
         amount: BigDecimal,
         date: Date,
         userPayingId: String,
+        userPayingUsername: String,
         usersPaidFor: Map<String, String>
     ): Expense = Expense (
         title = title,
         bigDecimalAmount = amount,
         date = date,
         userPayingId = userPayingId,
-        usersPaidFor = usersPaidFor
+        userPayingUsername = userPayingUsername,
+        usersPaidForId = usersPaidFor
     )
 
     private fun setUpDatePickerDialog(expenseDate: Date? = null) {
