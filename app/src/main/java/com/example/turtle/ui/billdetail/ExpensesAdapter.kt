@@ -3,7 +3,6 @@ package com.example.turtle.ui.billdetail
 import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
@@ -11,19 +10,12 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.turtle.R
-import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.google.android.material.card.MaterialCardView
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import kotlin.math.exp
 
 class ExpensesAdapter(
-    private val bill: Bill,
-    private val setTotals: (Unit) -> Unit,
     private val onClickListener: (Expense) -> Unit,
 ): RecyclerView.Adapter<ExpensesAdapter.ExpensesViewHolder>() {
 
@@ -75,15 +67,13 @@ class ExpensesAdapter(
 
         with(holder) {
             expenseTitle.text = expense.title
-            val paidByUser = bill.users!!.first { it.userId == expense.userPayingId }.email!!.split("@")[0]
+            val paidByUser = expense.userPayingUsername
             paidBy.text = Html.fromHtml("Paid by <b>${paidByUser}</b>", HtmlCompat.FROM_HTML_MODE_LEGACY)
             expenseAmount.text = expense.amount
             expenseDate.text = dateFormat.format(expense.date!!)
 
             cardView.setOnClickListener { onClickListener(expense) }
         }
-
-        setTotals(Unit)
     }
 
     override fun getItemCount(): Int = differ.currentList.size
