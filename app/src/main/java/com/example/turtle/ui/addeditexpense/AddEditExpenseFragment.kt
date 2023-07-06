@@ -143,11 +143,12 @@ class AddEditExpenseFragment: Fragment() {
                     "${calendar.get(Calendar.SECOND)}"
         )!!
 
-        val userProfile = binding.userPayingSpinner.selectedItem as Profile
-        val userPayingId = userProfile.userId!!
-        val userPayingUsername = userProfile.username!!
+        val userPayingProfile = binding.userPayingSpinner.selectedItem as Profile
+        val userPayingId = userPayingProfile.userId!!
+        val userPayingUsername = userPayingProfile.username!!
 
         val usersPaidForId = mutableMapOf<String, String>()
+        val usersPaidForUsername = mutableMapOf<String, String>()
 
         val selectedUsersCount = binding.usersPaidForList.checkedItemCount
 
@@ -158,13 +159,19 @@ class AddEditExpenseFragment: Fragment() {
 
         binding.usersPaidForList.checkedItemPositions.forEach { key, value ->
             if (value) {
-                val userId = (binding.usersPaidForList.getItemAtPosition(key) as Profile).userId!!
+                val userProfile = binding.usersPaidForList.getItemAtPosition(key) as Profile
+                val userId = userProfile.userId!!
+                val username = userProfile.username!!
                 val userAmount = (amount.divide(BigDecimal(selectedUsersCount), 2, RoundingMode.HALF_UP)).toString()
+
                 usersPaidForId[userId] = userAmount
+                usersPaidForUsername[username] = userAmount
             }
         }
 
-        val expenseObject = expenseObject(title, amount, date, userPayingId, userPayingUsername, usersPaidForId)
+        val expenseObject = expenseObject(
+            title, amount, date, userPayingId, userPayingUsername, usersPaidForId, usersPaidForUsername
+        )
 
         try {
             if (isNewExpense)
@@ -186,12 +193,16 @@ class AddEditExpenseFragment: Fragment() {
 
     private fun updateExpense(expenseId: String, newExpense: Expense) {
         expenseCollectionRef.document(expenseId).set(
-            newExpense.copy(usersPaidForId = mutableMapOf()),
+            newExpense.copy(usersPaidForId = mutableMapOf(), usersPaidForUsername = mutableMapOf()),
             SetOptions.merge()
         )
 
-        // usersPaidForId field updated separately, since it needs to be overwritten rather than merged
-        expenseCollectionRef.document(expenseId).update("usersPaidForId", newExpense.usersPaidForId)
+        // usersPaidForId and usersPaidForUsername fields updated separately,
+        // since they need to be overwritten rather than merged
+        expenseCollectionRef.document(expenseId).update(
+            "usersPaidForId", newExpense.usersPaidForId,
+            "usersPaidForUsername", newExpense.usersPaidForUsername
+        )
 
         Snackbar.make(requireView(), "Expense information updated", Snackbar.LENGTH_SHORT).show()
     }
@@ -202,14 +213,16 @@ class AddEditExpenseFragment: Fragment() {
         date: Date,
         userPayingId: String,
         userPayingUsername: String,
-        usersPaidForId: Map<String, String>
+        usersPaidForId: Map<String, String>,
+        usersPaidForUsername: Map<String, String>
     ): Expense = Expense (
         title = title,
         bigDecimalAmount = amount,
         date = date,
         userPayingId = userPayingId,
         userPayingUsername = userPayingUsername,
-        usersPaidForId = usersPaidForId
+        usersPaidForId = usersPaidForId,
+        usersPaidForUsername = usersPaidForUsername
     )
 
     private fun setUpDatePickerDialog(expenseDate: Date? = null) {
