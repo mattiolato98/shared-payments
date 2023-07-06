@@ -1,27 +1,17 @@
 package com.example.turtle.ui.billdetail
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.lifecycle.Lifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager.widget.ViewPager
 import com.example.turtle.R
 import com.example.turtle.databinding.FragmentBillDetailBinding
-import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 
 
 class BillDetailFragment: Fragment() {
@@ -39,7 +29,6 @@ class BillDetailFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentBillDetailBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
