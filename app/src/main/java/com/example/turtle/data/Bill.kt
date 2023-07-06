@@ -40,7 +40,7 @@ data class Bill(
         var result: BigDecimal = BigDecimal.ZERO
 
         expenses?.forEach { expense ->
-            expense.usersPaidFor?.filter { it.key == userId }?.forEach {
+            expense.usersPaidForId?.filter { it.key == userId }?.forEach {
                 result += BigDecimal(it.value)
             }
         }
@@ -142,7 +142,7 @@ data class Bill(
             expense.userPayingId == userId
         }
         val b = a?.map { expense ->
-            expense.usersPaidFor!!.filter { it.key != userId }
+            expense.usersPaidForId!!.filter { it.key != userId }
         }
 
         val c = b?.flatMap { it.values }
@@ -160,7 +160,7 @@ data class Bill(
         expenses?.filter { expense ->
             expense.userPayingId != userId
         }?.map { expense ->
-            expense.usersPaidFor!!.filter { it.key == userId }
+            expense.usersPaidForId!!.filter { it.key == userId }
         }?.flatMap { it.values }?.forEach {
             result += BigDecimal(it)
         }
