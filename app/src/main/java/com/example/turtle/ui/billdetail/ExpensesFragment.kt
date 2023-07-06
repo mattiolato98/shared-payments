@@ -2,7 +2,6 @@ package com.example.turtle.ui.billdetail
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -12,24 +11,20 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavDirections
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.turtle.R
 import com.example.turtle.SettingsPreferences
+import com.example.turtle.ViewModelFactory
 import com.example.turtle.data.Bill
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpensesBinding
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 const val TAG = "BILL_DETAIL"
 
@@ -42,8 +37,13 @@ class ExpensesFragment: Fragment() {
     private lateinit var expensesAdapter: ExpensesAdapter
 
     private lateinit var billId: String
-    private lateinit var bill: Bill
-    private val billCollectionRef = Firebase.firestore.collection("bills")
+
+    private val viewModel: BillDetailViewModel by viewModels {
+        ViewModelFactory(
+            requireActivity().application,
+            billId
+        )
+    }
 
     private lateinit var settingsPreferences: SettingsPreferences
 
@@ -53,61 +53,62 @@ class ExpensesFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentExpensesBinding.inflate(inflater, container, false)
+
         billId = this.requireArguments().getString("billId")!!
         settingsPreferences = SettingsPreferences(requireContext())
         setupMenuProvider()
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initExpensesFragment()
+        collectBill()
+        collectSnackbar()
+        collectDeleted()
+    }
 
+    private fun initExpensesFragment() {
         (activity as AppCompatActivity).supportActionBar?.elevation = 0f
 
-        getBill(billId)
+        expensesAdapter = ExpensesAdapter(onClickListener = { item -> navigateToExpenseDetail(item) })
+        binding.expensesList.adapter = expensesAdapter
+
         binding.newExpenseButton.setOnClickListener { navigateToAddExpense() }
     }
 
-    private fun getBill(billId: String) = viewLifecycleOwner.lifecycleScope.launch {
-        bill = try {
-            val doc = billCollectionRef.document(billId).get().await()
-            doc.toObject(Bill::class.java)!!
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            if (e is CancellationException) throw e
-            return@launch
+    private fun collectBill() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.bill.collect { bill ->
+                setTotals(bill)
+                expensesAdapter.differ.submitList(bill.expenses)
+            }
         }
-
-        expensesAdapter = ExpensesAdapter(
-            bill,
-            setTotals = { setTotals() },
-            onClickListener = { item -> navigateToExpenseDetail(item) }
-        )
-        binding.expensesList.adapter = expensesAdapter
-
-        subscribeToRealtimeUpdates()
     }
 
-    private fun subscribeToRealtimeUpdates() = viewLifecycleOwner.lifecycleScope.launch {
-        val expenseQuery = billCollectionRef.document(billId)
-            .collection("expenses")
-            .orderBy("date", Query.Direction.DESCENDING)
-
-        expenseQuery.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-            firebaseFirestoreException?.let {
-                Log.e(TAG, it.message.toString())
+    private fun collectSnackbar() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.snackbarText.collect { msg ->
+                Snackbar.make(requireView(), msg, Snackbar.LENGTH_LONG).show()
             }
-            querySnapshot?.let {
-                val expensesList = querySnapshot.documents.map { doc ->
-                    doc.toObject(Expense::class.java)!!
+        }
+    }
+
+    private fun collectDeleted() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.isDeleted.collect { isDeleted ->
+                if (isDeleted) {
+                    findNavController().navigateUp()
                 }
-                bill.expenses = expensesList
-                expensesAdapter.differ.submitList(expensesList)
             }
         }
     }
 
-    private fun setTotals() = viewLifecycleOwner.lifecycleScope.launch {
+    private fun deleteBill() = viewModel.deleteBill()
+
+
+    private fun setTotals(bill: Bill) = viewLifecycleOwner.lifecycleScope.launch {
         binding.userTotal.text = bill.userTotal(settingsPreferences.getUserId.first())
         binding.groupTotal.text = bill.groupTotal()
     }
@@ -133,20 +134,6 @@ class ExpensesFragment: Fragment() {
         )
     }
 
-    private fun deleteBill() = viewLifecycleOwner.lifecycleScope.launch {
-        val msg = try {
-            billCollectionRef.document(billId).delete().await()
-            "Bill successfully deleted"
-        } catch (e: Exception) {
-            Log.d(TAG, e.message.toString())
-            if (e is CancellationException) throw e
-            "An unexpected error occurred while deleting the item. Retry later"
-        }
-
-        Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
-        findNavController().navigateUp()
-    }
-
     private fun showDeleteDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle("Delete Bill")
@@ -169,23 +156,18 @@ class ExpensesFragment: Fragment() {
 
     private fun navigateToExpenseDetail(expense: Expense) {
         val action = BillDetailFragmentDirections.navigateToExpenseDetail(
-            bill.documentId!!,
+            billId,
             expense.documentId!!,
             expense.title
         )
-        navigateToDirection(action)
+        findNavController().navigate(action)
     }
 
     private fun navigateToAddExpense() {
         val action = BillDetailFragmentDirections.navigateToAddExpense(
-            billId = bill.documentId!!,
+            billId = billId,
             title = resources.getString(R.string.new_expense)
         )
-        navigateToDirection(action)
-    }
-
-    private fun navigateToDirection(action: NavDirections) {
-        parentFragmentManager.beginTransaction().detach(this).commit()
         findNavController().navigate(action)
     }
 
