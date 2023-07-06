@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.turtle.ui.billdetail.BillDetailViewModel
 import com.example.turtle.ui.bills.BillsViewModel
+import com.example.turtle.ui.expensedetail.ExpenseDetailViewModel
 
 class ViewModelFactory(
-    private val application: Application,
+    private val application: Application? = null,
     private val billId: String? = null,
+    private val expenseId: String? = null,
 ): ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -23,6 +25,9 @@ class ViewModelFactory(
                 isAssignableFrom(BillsViewModel::class.java) -> {
                     val userId = application.userId!!
                     BillsViewModel(billRepository, userId) as T
+                }
+                isAssignableFrom(ExpenseDetailViewModel::class.java) -> {
+                    ExpenseDetailViewModel(billRepository, billId!!, expenseId!!) as T
                 }
                 else -> {
                     throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
