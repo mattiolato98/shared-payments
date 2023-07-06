@@ -249,7 +249,7 @@ class AddEditBillFragment: Fragment() {
         val profile = profileDoc.toObject(Profile::class.java)
 
         return bill!!.expenses
-            ?.flatMap { it.usersPaidFor?.keys!! + it.userPayingId }
+            ?.flatMap { it.usersPaidForId?.keys!! + it.userPayingId }
             ?.contains(profile.userId)
             ?: false
     }
