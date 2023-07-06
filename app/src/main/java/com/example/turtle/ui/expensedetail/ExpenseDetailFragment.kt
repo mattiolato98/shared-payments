@@ -3,31 +3,27 @@ package com.example.turtle.ui.expensedetail
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.Html
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.turtle.R
-import com.example.turtle.data.Bill
+import com.example.turtle.ViewModelFactory
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpenseDetailBinding
-import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -39,16 +35,16 @@ class ExpenseDetailFragment: Fragment() {
     private val binding get() = _binding!!
 
     private val args: ExpenseDetailFragmentArgs by navArgs()
-
     private val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.US)
-
-    private lateinit var bill: Bill
-    private lateinit var expense: Expense
-
     private lateinit var balanceAdapter: BalanceAdapter
 
-    private val billCollectionRef = Firebase.firestore.collection("bills")
-    private lateinit var expenseCollectionRef: CollectionReference
+    private val viewModel: ExpenseDetailViewModel by viewModels {
+        ViewModelFactory(
+            requireActivity().application,
+            args.billId,
+            args.expenseId,
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,57 +58,48 @@ class ExpenseDetailFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        expenseCollectionRef = billCollectionRef.document(args.billId).collection("expenses")
-        setUp(args.expenseId)
+        initExpenseDetailFragment()
+        collectExpense()
     }
 
-    private fun setUp(expenseId: String) = viewLifecycleOwner.lifecycleScope.launch {
-        expense = try {
-            val doc = expenseCollectionRef.document(expenseId).get().await()
-            doc.toObject(Expense::class.java)!!
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            if (e is CancellationException) throw e
-            return@launch
+    private fun initExpenseDetailFragment() {
+        balanceAdapter = BalanceAdapter()
+        binding.usersPaidForList.adapter = balanceAdapter
+    }
+
+    private fun collectExpense() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.expense.collect { expense ->
+                (activity as AppCompatActivity).supportActionBar?.title = expense.title
+                fillExpenseData(expense)
+            }
         }
+    }
 
-        bill = try {
-            val doc = billCollectionRef.document(args.billId).get().await()
-            doc.toObject(Bill::class.java)!!
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            if (e is CancellationException) throw e
-            return@launch
-        }
+    private fun deleteExpense() = viewModel.deleteExpense()
 
-        val paidByUser = bill.users!!.first { it.userId == expense.userPayingId }.email!!.split("@")[0]
-
+    private fun fillExpenseData(expense: Expense) {
         binding.expenseAmount.text = expense.amount
-        binding.paidBy.text = Html.fromHtml("Paid by <b>${paidByUser}</b>", HtmlCompat.FROM_HTML_MODE_LEGACY)
         binding.expenseDate.text = dateFormat.format(expense.date!!)
 
+        binding.paidBy.text = Html.fromHtml(
+            "Paid by <b>${expense.userPayingUsername}</b>",
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
         binding.usersPaidForTitle.text = Html.fromHtml(
             "Paid for <b>${expense.usersPaidForId!!.count()} people</b>",
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
 
-        val usersPaidFor =
-            bill.users!!.filter { it.userId in expense.usersPaidForId!!.keys }.associateWith {
-                expense.usersPaidForId!![it.userId].toString()
-            }.mapKeys {
-                it.key.email!!.split("@")[0]
-            }
-
-        balanceAdapter = BalanceAdapter(usersPaidFor)
-        binding.usersPaidForList.adapter = balanceAdapter
+        balanceAdapter.setData(expense.usersPaidForUsername!!)
+        balanceAdapter.notifyDataSetChanged()
     }
 
     private fun navigateToEditExpense() {
         val action = ExpenseDetailFragmentDirections.navigateToEditExpense(
-            expense.documentId!!,
-            bill.documentId!!,
-            expense.title,
+            args.expenseId,
+            args.billId,
+            args.title,
         )
         findNavController().navigate(action)
     }
@@ -122,23 +109,8 @@ class ExpenseDetailFragment: Fragment() {
             .setTitle("Delete Expense")
             .setMessage("Are you sure you want to delete ${args.title}? The action is not reversible!")
             .setPositiveButton("Delete") { dialog, _ ->
+                deleteExpense()
                 dialog.cancel()
-                expenseCollectionRef.document(args.expenseId).delete()
-                    .addOnSuccessListener {
-                        Snackbar.make(
-                            requireView(),
-                            "Expense successfully deleted",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                        findNavController().navigateUp()
-                    }
-                    .addOnFailureListener {
-                        Snackbar.make(
-                            requireView(),
-                            "An unexpected error occurred while deleting the item. Retry later",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                    }
             }
             .setNegativeButton("Cancel", null)
             .show()
