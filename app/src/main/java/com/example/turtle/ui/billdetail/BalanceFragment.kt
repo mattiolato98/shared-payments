@@ -1,33 +1,36 @@
 package com.example.turtle.ui.billdetail
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.example.turtle.data.Bill
-import com.example.turtle.data.Expense
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.turtle.ViewModelFactory
 import com.example.turtle.databinding.FragmentBalanceBinding
 import com.example.turtle.ui.expensedetail.BalanceAdapter
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 
 class BalanceFragment: Fragment() {
     private var _binding: FragmentBalanceBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var billId: String
-    private lateinit var bill: Bill
-    private val billCollectionRef = Firebase.firestore.collection("bills")
-
     private lateinit var balanceAdapter: BalanceAdapter
     private lateinit var refundsAdapter: RefundsAdapter
+
+    private lateinit var billId: String
+
+    private val viewModel: BillDetailViewModel by activityViewModels {
+        ViewModelFactory(
+            requireActivity().application,
+            billId
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,32 +44,31 @@ class BalanceFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getBill(billId) }
+        initBalanceFragment()
+        collectBill()
+    }
 
-    private fun getBill(billId: String) = viewLifecycleOwner.lifecycleScope.launch {
-        bill = try {
-            val doc = billCollectionRef.document(billId).get().await()
-            doc.toObject(Bill::class.java)!!
-        } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
-            if (e is CancellationException) throw e
-            return@launch
-        }
-
-        val expensesCollection = billCollectionRef.document(billId).collection("expenses").get().await()
-        val expensesList = expensesCollection.documents.map { doc ->
-            doc.toObject(Expense::class.java)!!
-        }
-        bill.expenses = expensesList
-
-        balanceAdapter = BalanceAdapter(bill.balance())
+    private fun initBalanceFragment() {
+        balanceAdapter = BalanceAdapter()
         binding.usersBalance.adapter = balanceAdapter
 
-        bill.refunds()?.also {
-            refundsAdapter = RefundsAdapter(it)
-            binding.refunds.adapter = refundsAdapter
-        }
+        refundsAdapter = RefundsAdapter()
+        binding.refunds.adapter = refundsAdapter
+    }
 
+    @SuppressLint("NotifyDataSetChanged")
+    private fun collectBill() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.bill.collect { bill ->
+                balanceAdapter.setData(bill.balance())
+                balanceAdapter.notifyDataSetChanged()
+
+                bill.refunds()?.also {
+                    refundsAdapter.setData(it)
+                    refundsAdapter.notifyDataSetChanged()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

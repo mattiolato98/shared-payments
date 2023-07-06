@@ -10,10 +10,8 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 class BalanceAdapter(
-    private val data: Map<String, String>,
+    private val data: MutableMap<String, String> = mutableMapOf(),
 ): RecyclerView.Adapter<BalanceAdapter.BalanceViewHolder>() {
-
-    private val keys: List<String> = data.keys.toList()
 
     inner class BalanceViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val user: TextView
@@ -27,6 +25,11 @@ class BalanceAdapter(
         }
     }
 
+    fun setData(data: Map<String, String>) {
+        this.data.entries.removeAll { true }
+        this.data.putAll(data)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BalanceViewHolder {
         return BalanceViewHolder(
             LayoutInflater.from(parent.context).inflate(
@@ -38,16 +41,21 @@ class BalanceAdapter(
     }
 
     override fun onBindViewHolder(holder: BalanceViewHolder, position: Int) {
+        val keys = data.keys.toList()
         val username = keys[position]
         val amount = BigDecimal(data[keys[position]]).setScale(2, RoundingMode.HALF_UP)
 
         with(holder) {
             user.text = username
 
-            if (amount >= BigDecimal.ZERO)
+            if (amount >= BigDecimal.ZERO) {
                 userPositiveAmount.text = amount.toString()
-            else
+                userNegativeAmount.text = null
+            }
+            else {
                 userNegativeAmount.text = amount.toString()
+                userPositiveAmount.text = null
+            }
         }
     }
 

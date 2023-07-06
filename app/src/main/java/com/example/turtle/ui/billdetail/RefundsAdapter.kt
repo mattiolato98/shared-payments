@@ -6,10 +6,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.turtle.R
-import com.example.turtle.ui.expensedetail.BalanceAdapter
 
 class RefundsAdapter(
-    private val data: List<Triple<String, String, String>>,
+    private val data: MutableList<Triple<String, String, String>> = mutableListOf(),
 ): RecyclerView.Adapter<RefundsAdapter.RefundsViewHolder>() {
 
     inner class RefundsViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
@@ -22,6 +21,11 @@ class RefundsAdapter(
             userCreditor = itemView.findViewById(R.id.user_creditor)
             transactionAmount = itemView.findViewById(R.id.transaction_amount)
         }
+    }
+
+    fun setData(data: List<Triple<String, String, String>>) {
+        this.data.removeAll { true }
+        this.data.addAll(data)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RefundsViewHolder {
