@@ -22,9 +22,10 @@ data class Expense(
     var date: Date? = null,
 
     var userPayingId: String? = null,
+    var userPayingUsername: String? = null,
 
     // Map<userId, userAmount>
-    var usersPaidFor: Map<String, String>? = null
+    var usersPaidForId: Map<String, String>? = null
 ) {
     var amount: String by BigDecimalConverterDelegate(this::bigDecimalAmount)
 }
