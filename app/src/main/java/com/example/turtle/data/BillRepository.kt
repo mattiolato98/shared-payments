@@ -75,14 +75,16 @@ class BillRepository {
         }
     }
 
-    fun deleteBill(billId: String): String {
+    fun deleteBill(billId: String): Resource<Unit> {
         return try {
             billCollectionRef.document(billId).delete()
-            "Bill successfully deleted"
+            Resource.Success(Unit, "Bill successfully deleted")
         } catch (e: Exception) {
             Log.d(com.example.turtle.ui.billdetail.TAG, e.message.toString())
             if (e is CancellationException) throw e
-            "An unexpected error occurred while deleting the item. Retry later"
+            Resource.Error(
+                "An unexpected error occurred while deleting the item. Retry later"
+            )
         }
     }
 
