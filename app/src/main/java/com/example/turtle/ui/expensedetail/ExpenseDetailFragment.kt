@@ -93,13 +93,13 @@ class ExpenseDetailFragment: Fragment() {
         binding.expenseDate.text = dateFormat.format(expense.date!!)
 
         binding.usersPaidForTitle.text = Html.fromHtml(
-            "Paid for <b>${expense.usersPaidFor!!.count()} people</b>",
+            "Paid for <b>${expense.usersPaidForId!!.count()} people</b>",
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
 
         val usersPaidFor =
-            bill.users!!.filter { it.userId in expense.usersPaidFor!!.keys }.associateWith {
-                expense.usersPaidFor!![it.userId].toString()
+            bill.users!!.filter { it.userId in expense.usersPaidForId!!.keys }.associateWith {
+                expense.usersPaidForId!![it.userId].toString()
             }.mapKeys {
                 it.key.email!!.split("@")[0]
             }
