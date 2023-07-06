@@ -25,7 +25,10 @@ data class Expense(
     var userPayingUsername: String? = null,
 
     // Map<userId, userAmount>
-    var usersPaidForId: Map<String, String>? = null
+    var usersPaidForId: Map<String, String>? = null,
+
+    // Map<username, userAmount>
+    var usersPaidForUsername: Map<String, String>? = null
 ) {
     var amount: String by BigDecimalConverterDelegate(this::bigDecimalAmount)
 }
