@@ -23,6 +23,7 @@ import com.example.turtle.R
 import com.example.turtle.ViewModelFactory
 import com.example.turtle.data.Expense
 import com.example.turtle.databinding.FragmentExpenseDetailBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -60,6 +61,8 @@ class ExpenseDetailFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initExpenseDetailFragment()
         collectExpense()
+        collectSnackbar()
+        collectDeleted()
     }
 
     private fun initExpenseDetailFragment() {
@@ -72,6 +75,24 @@ class ExpenseDetailFragment: Fragment() {
             viewModel.expense.collect { expense ->
                 (activity as AppCompatActivity).supportActionBar?.title = expense.title
                 fillExpenseData(expense)
+            }
+        }
+    }
+
+    private fun collectSnackbar() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.snackbarText.collect { msg ->
+                Snackbar.make(requireView(), msg, Snackbar.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun collectDeleted() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.isDeleted.collect { isDeleted ->
+                if (isDeleted) {
+                    findNavController().navigateUp()
+                }
             }
         }
     }
