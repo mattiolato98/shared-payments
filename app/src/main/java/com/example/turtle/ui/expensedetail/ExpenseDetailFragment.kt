@@ -113,7 +113,6 @@ class ExpenseDetailFragment: Fragment() {
         )
 
         balanceAdapter.setData(expense.usersPaidForUsername!!)
-        balanceAdapter.notifyDataSetChanged()
     }
 
     private fun navigateToEditExpense() {
