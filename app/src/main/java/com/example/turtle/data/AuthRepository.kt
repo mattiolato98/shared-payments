@@ -84,9 +84,26 @@ class AuthRepository: BaseRepository() {
             val doc = profileCollectionRef.document(userId).get().await()
             doc.toObject(Profile::class.java)
         } catch (e: Exception) {
-            Log.d(TAG, e.message.toString())
+            Log.d(tag, e.message.toString())
             if (e is CancellationException) throw e
             null
+        }
+    }
+
+    suspend fun getProfileByUserId(userId: String) = getProfile("userId", userId)
+    suspend fun getProfileByEmail(email: String) = getProfile("email", email)
+
+    private suspend fun getProfile(fieldName: String, fieldValue: Any): Resource<Profile> {
+        return try {
+            val profileDocs = profileCollectionRef
+                .whereEqualTo(fieldName, fieldValue).get().await()
+            if (profileDocs.isEmpty)
+                return Resource.Error("No user found with this $fieldName")
+            Resource.Success(profileDocs.first().toObject(Profile::class.java))
+        } catch (e: Exception) {
+            Log.d(tag, e.message.toString())
+            if (e is CancellationException) throw e
+            Resource.Error("An error occurred while fetching the data. Try again later")
         }
     }
 
@@ -102,7 +119,7 @@ class AuthRepository: BaseRepository() {
         try {
             auth.signOut()
         } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
+            Log.e(tag, e.message.toString())
             if (e is CancellationException) throw e
         }
     }
