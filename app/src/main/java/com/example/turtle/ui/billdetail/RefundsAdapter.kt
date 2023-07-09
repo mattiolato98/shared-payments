@@ -1,5 +1,6 @@
 package com.example.turtle.ui.billdetail
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,9 +24,11 @@ class RefundsAdapter(
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setData(data: List<Triple<String, String, String>>) {
         this.data.removeAll { true }
         this.data.addAll(data)
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RefundsViewHolder {
