@@ -1,6 +1,7 @@
 package com.example.turtle.data
 
 import android.util.Log
+import com.example.turtle.Resource
 import com.example.turtle.ui.auth.AuthResult
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -13,10 +14,10 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
-const val TAG = "AUTH"
 
+class AuthRepository: BaseRepository() {
+    val tag = "AUTH"
 
-class AuthRepository {
     private val auth = Firebase.auth
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
 
