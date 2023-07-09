@@ -1,5 +1,6 @@
 package com.example.turtle.ui.expensedetail
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,9 +26,11 @@ class BalanceAdapter(
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setData(data: Map<String, String>) {
         this.data.entries.removeAll { true }
         this.data.putAll(data)
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BalanceViewHolder {
