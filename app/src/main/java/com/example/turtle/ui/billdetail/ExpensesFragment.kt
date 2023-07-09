@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -38,7 +38,7 @@ class ExpensesFragment: Fragment() {
 
     private lateinit var billId: String
 
-    private val viewModel: BillDetailViewModel by activityViewModels {
+    private val viewModel: BillDetailViewModel by viewModels {
         ViewModelFactory(
             requireActivity().application,
             billId

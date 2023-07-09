@@ -1,12 +1,11 @@
 package com.example.turtle.ui.billdetail
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -25,7 +24,7 @@ class BalanceFragment: Fragment() {
 
     private lateinit var billId: String
 
-    private val viewModel: BillDetailViewModel by activityViewModels {
+    private val viewModel: BillDetailViewModel by viewModels {
         ViewModelFactory(
             requireActivity().application,
             billId
@@ -56,16 +55,13 @@ class BalanceFragment: Fragment() {
         binding.refunds.adapter = refundsAdapter
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private fun collectBill() = viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.bill.collect { bill ->
                 balanceAdapter.setData(bill.balance())
-                balanceAdapter.notifyDataSetChanged()
 
                 bill.refunds()?.also {
                     refundsAdapter.setData(it)
-                    refundsAdapter.notifyDataSetChanged()
                 }
             }
         }
