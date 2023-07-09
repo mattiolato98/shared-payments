@@ -2,26 +2,20 @@ package com.example.turtle.data
 
 import android.util.Log
 import com.example.turtle.Resource
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Singleton
 
 
 @Singleton
-class BillRepository {
+class BillRepository: BaseRepository() {
     val tag = "BILL_REPOSITORY"
 
     private val billCollectionRef = Firebase.firestore.collection("bills")
@@ -123,56 +117,62 @@ class BillRepository {
         }
     }
 
-    private fun Query.getQuerySnapshotFlow(): Flow<QuerySnapshot?> {
-        return callbackFlow {
-            val listenerRegistration =
-                addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                    firebaseFirestoreException?.let {
-                        cancel(
-                            message = "Error fetching data",
-                            cause = firebaseFirestoreException
-                        )
-                        return@addSnapshotListener
-                    }
-                    trySend(querySnapshot)
-                }
-            awaitClose {
-                listenerRegistration.remove()
-            }
+    fun createBill(
+        userOwnerId: String,
+        userOwnerProfile: Profile,
+        title: String,
+        description: String?,
+        users: List<Profile>?
+    ) {
+        try {
+            billCollectionRef.add(billObject(userOwnerId, userOwnerProfile, title, description, users))
+        } catch (e: Exception) {
+            Log.e(tag, e.message.toString())
+            if (e is CancellationException) throw e
         }
     }
 
-    @ExperimentalCoroutinesApi
-    fun <T> Query.getDataFlow(mapper: (QuerySnapshot?) -> T): Flow<T> {
-        return getQuerySnapshotFlow()
-            .map {
-                return@map mapper(it)
-            }
-    }
-
-    private fun DocumentReference.getQuerySnapshotFlow(): Flow<DocumentSnapshot?> {
-        return callbackFlow {
-            val listenerRegistration =
-                addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
-                    firebaseFirestoreException?.let {
-                        cancel(
-                            message = "Error fetching data",
-                            cause = firebaseFirestoreException
-                        )
-                        return@addSnapshotListener
-                    }
-                    trySend(documentSnapshot)
-                }
-            awaitClose {
-                listenerRegistration.remove()
-            }
+    fun updateBill(
+        billId: String,
+        userOwnerId: String,
+        userOwnerProfile: Profile,
+        title: String,
+        description: String?,
+        users: List<Profile>?
+    ) {
+        try {
+            billCollectionRef.document(billId).set(
+                billObject(userOwnerId, userOwnerProfile, title, description, users),
+                SetOptions.merge()
+            )
+        } catch (e: Exception) {
+            Log.e(com.example.turtle.ui.addeditbill.TAG, e.message.toString())
+            if (e is CancellationException) throw e
         }
     }
 
-    fun <T> DocumentReference.getDataFlow(mapper: (DocumentSnapshot?) -> T): Flow<T> {
-        return getQuerySnapshotFlow()
-            .map {
-                return@map mapper(it)
-            }
+    fun isUserInvolvedInExpenses(bill: Bill, userId: String): Boolean {
+        return bill.expenses
+            ?.flatMap { it.usersPaidForId?.keys!! + it.userPayingId }
+            ?.contains(userId)
+            ?: false
+    }
+
+    private fun billObject(
+        userOwnerId: String,
+        userOwnerProfile: Profile,
+        title: String,
+        description: String?,
+        users: List<Profile>?,
+    ): Bill {
+        val usersMutable = users?.toMutableList()
+        usersMutable?.add(userOwnerProfile)
+        return Bill(
+            userOwnerId = userOwnerId,
+            title = title,
+            description = description,
+            usersId = usersMutable?.map { it.userId!! },
+            users = usersMutable
+        )
     }
 }
