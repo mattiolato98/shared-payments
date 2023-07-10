@@ -70,8 +70,7 @@ class AddEditBillFragment: Fragment() {
 
     private fun collectBill() =
         collectLifecycleFlow(viewModel.bill) { bill ->
-            if (!viewModel.isNewBill)
-                bill.run { fillBillData(bill!!) }
+            bill.run { fillBillData(bill!!) }
     }
 
     private fun collectAddFriend() =
@@ -106,11 +105,11 @@ class AddEditBillFragment: Fragment() {
     }
 
     private fun saveBill() {
-        viewModel.title.value = binding.fieldTitle.text.toString()
-        viewModel.description.value = binding.fieldDescription.text.toString()
+        val title = binding.fieldTitle.text.toString()
+        val description = binding.fieldDescription.text.toString()
             .let { it.ifEmpty { null } }
 
-        viewModel.saveBill()
+        viewModel.saveBill(title, description)
     }
 
     private fun addFriend() = viewModel.addFriend(binding.fieldAddFriend.text.toString().trim())

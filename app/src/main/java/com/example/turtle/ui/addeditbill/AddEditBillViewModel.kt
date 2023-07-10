@@ -25,14 +25,7 @@ class AddEditBillViewModel @Inject constructor(
     private val userEmail: String,
 ): ViewModel() {
 
-    val title = MutableStateFlow<String>("")
-    val description = MutableStateFlow<String?>(null)
-
-    private val _friendsProfiles = MutableStateFlow<Map<String, Profile>>(mapOf())
-    val friendsProfiles = _friendsProfiles.asStateFlow()
-
-    var isNewBill: Boolean = true
-        private set
+    private var isNewBill: Boolean = true
 
     private val _snackbarText = MutableSharedFlow<String>()
     val snackbarText = _snackbarText.asSharedFlow()
@@ -42,6 +35,9 @@ class AddEditBillViewModel @Inject constructor(
 
     private val _isDone = MutableStateFlow<Boolean>(false)
     val isDone = _isDone.asStateFlow()
+
+    private val _friendsProfiles = MutableStateFlow<Map<String, Profile>>(mapOf())
+    val friendsProfiles = _friendsProfiles.asStateFlow()
 
     private val _bill = MutableStateFlow<Bill?>(null)
     val bill = _bill.shareIn(viewModelScope, SharingStarted.Eagerly)
@@ -64,8 +60,8 @@ class AddEditBillViewModel @Inject constructor(
         }
     }
 
-    fun saveBill() = viewModelScope.launch {
-        if (title.value.isEmpty()) {
+    fun saveBill(title: String, description: String?) = viewModelScope.launch {
+        if (title.isEmpty()) {
             _snackbarText.emit("Bill title cannot be empty")
             return@launch
         }
@@ -76,14 +72,14 @@ class AddEditBillViewModel @Inject constructor(
 
         val billObject = _bill.value?.copy(
             userOwnerId = userId,
-            title = title.value,
-            description = description.value,
+            title = title,
+            description = description,
             usersId = users.map { it.userId!! },
             users = users,
         ) ?: Bill(
             userOwnerId = userId,
-            title = title.value,
-            description = description.value,
+            title = title,
+            description = description,
             usersId = users.map { it.userId!! },
             users = users,
         )
