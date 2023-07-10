@@ -37,7 +37,7 @@ class ExpenseDetailViewModel @Inject constructor(
                 is Resource.Error -> _snackbarText.emit(it.message!!)
             }
         }
-    }.shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun deleteExpense() = viewModelScope.launch {
         when(val result = repository.deleteExpense(billId, expenseId)) {
