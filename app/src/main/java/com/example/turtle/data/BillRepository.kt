@@ -117,15 +117,9 @@ class BillRepository: BaseRepository() {
         }
     }
 
-    fun createBill(
-        userOwnerId: String,
-        userOwnerProfile: Profile,
-        title: String,
-        description: String?,
-        users: List<Profile>?
-    ): Resource<Unit> {
+    fun createBill(bill: Bill): Resource<Unit> {
         return try {
-            billCollectionRef.add(billObject(userOwnerId, userOwnerProfile, title, description, users))
+            billCollectionRef.add(bill)
             Resource.Success(Unit, "Bill saved")
         } catch (e: Exception) {
             Log.e(tag, e.message.toString())
@@ -134,17 +128,10 @@ class BillRepository: BaseRepository() {
         }
     }
 
-    fun updateBill(
-        billId: String,
-        userOwnerId: String,
-        userOwnerProfile: Profile,
-        title: String,
-        description: String?,
-        users: List<Profile>?
-    ): Resource<Unit> {
+    fun updateBill(billId: String, bill: Bill): Resource<Unit> {
         return try {
             billCollectionRef.document(billId).set(
-                billObject(userOwnerId, userOwnerProfile, title, description, users),
+                bill,
                 SetOptions.merge()
             )
             Resource.Success(Unit, "Bill information updated")
