@@ -83,6 +83,7 @@ class ExpensesFragment: Fragment() {
             viewModel.bill.collect { bill ->
                 setTotals(bill)
                 expensesAdapter.differ.submitList(bill.expenses)
+                (activity as AppCompatActivity).supportActionBar?.title = bill.title
             }
         }
     }
