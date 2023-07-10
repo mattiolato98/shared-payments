@@ -123,12 +123,14 @@ class BillRepository: BaseRepository() {
         title: String,
         description: String?,
         users: List<Profile>?
-    ) {
-        try {
+    ): Resource<Unit> {
+        return try {
             billCollectionRef.add(billObject(userOwnerId, userOwnerProfile, title, description, users))
+            Resource.Success(Unit, "Bill saved")
         } catch (e: Exception) {
             Log.e(tag, e.message.toString())
             if (e is CancellationException) throw e
+            Resource.Error("An error occurred. Try again later.")
         }
     }
 
@@ -139,15 +141,17 @@ class BillRepository: BaseRepository() {
         title: String,
         description: String?,
         users: List<Profile>?
-    ) {
-        try {
+    ): Resource<Unit> {
+        return try {
             billCollectionRef.document(billId).set(
                 billObject(userOwnerId, userOwnerProfile, title, description, users),
                 SetOptions.merge()
             )
+            Resource.Success(Unit, "Bill information updated")
         } catch (e: Exception) {
             Log.e(com.example.turtle.ui.addeditbill.TAG, e.message.toString())
             if (e is CancellationException) throw e
+            Resource.Error("An error occurred. Try again later.")
         }
     }
 
