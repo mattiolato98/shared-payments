@@ -10,10 +10,13 @@ import com.example.turtle.data.BillRepository
 import com.example.turtle.data.Profile
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 class AddEditBillViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -29,7 +32,8 @@ class AddEditBillViewModel @Inject constructor(
     private val _friendsProfiles = MutableStateFlow<Map<String, Profile>>(mapOf())
     val friendsProfiles = _friendsProfiles.asStateFlow()
 
-    private var isNewBill: Boolean = true
+    var isNewBill: Boolean = true
+        private set
 
     private val _snackbarText = MutableSharedFlow<String>()
     val snackbarText = _snackbarText.asSharedFlow()
@@ -41,22 +45,22 @@ class AddEditBillViewModel @Inject constructor(
     val isDone = _isDone.asStateFlow()
 
     private val _bill = MutableStateFlow<Bill?>(null)
-    val bill = _bill.asStateFlow()
-
+    val bill = _bill.shareIn(viewModelScope, SharingStarted.Eagerly)
 
     fun getBill() = viewModelScope.launch {
+        if (isNewBill && billId != null) {
+            repository.getBillAndExpenses(billId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        result.data!!.users!!.filter { profile ->
+                            profile.userId != userId
+                        }.forEach { addFriend(it) }
 
-        repository.getBillAndExpenses(billId!!).collect { result ->
-            when(result) {
-                is Resource.Success -> {
-                    result.data!!.users!!.filter { profile ->
-                        profile.userId != userId
-                    }.forEach { addFriend(it) }
-
-                    _bill.value = result.data
-                    isNewBill = false
+                        _bill.value = result.data
+                        isNewBill = false
+                    }
+                    is Resource.Error -> _snackbarText.emit(result.message!!)
                 }
-                is Resource.Error -> _snackbarText.emit(result.message!!)
             }
         }
     }
@@ -67,48 +71,34 @@ class AddEditBillViewModel @Inject constructor(
             return@launch
         }
 
-        if (isNewBill) createBill() else updateBill()
-    }
+        val currentUserProfile = getCurrentUserProfile() ?:run { return@launch }
+        val users = _friendsProfiles.value.values.toMutableList()
+        users.add(currentUserProfile)
 
-    private suspend fun createBill() {
-        val currentUserProfile = getCurrentUserProfile() ?:run { return }
-
-        val result = repository.createBill(
-            userId,
-            currentUserProfile,
-            title.value,
-            description.value,
-            _friendsProfiles.value.values.toList(),
+        val billObject = _bill.value?.copy(
+            userOwnerId = userId,
+            title = title.value,
+            description = description.value,
+            usersId = users.map { it.userId!! },
+            users = users,
+        ) ?: Bill(
+            userOwnerId = userId,
+            title = title.value,
+            description = description.value,
+            usersId = users.map { it.userId!! },
+            users = users,
         )
 
-        when(result) {
-            is Resource.Success -> {
-                _isDone.emit(true)
-                _snackbarText.emit(result.message!!)
-            }
-            is Resource.Error -> _snackbarText.emit(result.message!!)
+        val result = if (isNewBill) {
+            repository.createBill(billObject)
+        } else {
+            repository.updateBill(billId!!, billObject)
         }
-    }
 
-    private suspend fun updateBill() {
-        val currentUserProfile = getCurrentUserProfile() ?:run { return }
+        _snackbarText.emit(result.message!!)
 
-        val result = repository.updateBill(
-            billId!!,
-            userId,
-            currentUserProfile,
-            title.value,
-            description.value,
-            _friendsProfiles.value.values.toList()
-        )
-
-        when(result) {
-            is Resource.Success -> {
-                _isDone.emit(true)
-                _snackbarText.emit(result.message!!)
-            }
-            is Resource.Error -> _snackbarText.emit(result.message!!)
-        }
+        if (result is Resource.Success)
+            _isDone.emit(true)
     }
 
     fun addFriend(email: String) = viewModelScope.launch {
@@ -139,7 +129,6 @@ class AddEditBillViewModel @Inject constructor(
     }
 
     fun removeFriend(email: String) = viewModelScope.launch {
-        Log.d("TAG", "Remove friend: $isNewBill")
         if (!isNewBill && isUserInvolvedInExpenses(email)) {
             _snackbarText.emit(
                 "This user is involved in at least one expense, so it is not possible to remove it"
@@ -160,7 +149,7 @@ class AddEditBillViewModel @Inject constructor(
 
     private fun isUserInvolvedInExpenses(userEmail: String): Boolean {
         val profile = _friendsProfiles.value[userEmail]!!
-        return repository.isUserInvolvedInExpenses(bill.value!!, profile.userId!!)
+        return repository.isUserInvolvedInExpenses(_bill.value!!, profile.userId!!)
     }
 
     private fun friendAlreadyAdded(email: String): Boolean {

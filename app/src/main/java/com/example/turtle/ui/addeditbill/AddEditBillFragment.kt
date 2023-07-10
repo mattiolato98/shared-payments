@@ -65,19 +65,23 @@ class AddEditBillFragment: Fragment() {
             buttonAddFriend.setOnClickListener { addFriend() }
         }
 
-        args.billId?.run { viewModel.getBill() }
+        viewModel.getBill()
     }
 
     private fun collectBill() =
         collectLifecycleFlow(viewModel.bill) { bill ->
-            bill?.run { fillBillData(bill) }
+            if (!viewModel.isNewBill)
+                bill.run { fillBillData(bill!!) }
     }
 
     private fun collectAddFriend() =
         collectLifecycleFlow(viewModel.friendsProfiles) { profiles ->
             binding.friendsLinearLayout.removeAllViews()
-            profiles.forEach { addFriendToLayout(it.key) }
-            clearAddFriend()
+            profiles.forEach {
+                addFriendToLayout(it.key)
+                if (binding.fieldAddFriend.text.toString() == it.key)
+                    clearAddFriend()
+            }
     }
 
     private fun collectShowFriendsTitle() =
