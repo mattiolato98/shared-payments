@@ -1,7 +1,6 @@
 package com.example.turtle.ui.addeditbill
 
 import android.util.Log
-import android.widget.Button
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.turtle.Resource
@@ -35,26 +34,27 @@ class AddEditBillViewModel @Inject constructor(
     private val _snackbarText = MutableSharedFlow<String>()
     val snackbarText = _snackbarText.asSharedFlow()
 
-    private val _bill = MutableStateFlow(Bill())
-    val bill = _bill.asStateFlow()
-
     private val _showFriendsTitle = MutableStateFlow<Boolean>(false)
     val showFriendsTitle = _showFriendsTitle.asStateFlow()
 
     private val _isDone = MutableStateFlow<Boolean>(false)
     val isDone = _isDone.asStateFlow()
 
+    private val _bill = MutableStateFlow<Bill?>(null)
+    val bill = _bill.asStateFlow()
+
+
     fun getBill() = viewModelScope.launch {
-        isNewBill = false
 
         repository.getBillAndExpenses(billId!!).collect { result ->
             when(result) {
                 is Resource.Success -> {
-                    _bill.value = result.data!!
-
-                    result.data.users!!.filter { profile ->
+                    result.data!!.users!!.filter { profile ->
                         profile.userId != userId
                     }.forEach { addFriend(it) }
+
+                    _bill.value = result.data
+                    isNewBill = false
                 }
                 is Resource.Error -> _snackbarText.emit(result.message!!)
             }
@@ -71,17 +71,9 @@ class AddEditBillViewModel @Inject constructor(
     }
 
     private suspend fun createBill() {
-        val currentUserProfile = when(val result = authRepository.getProfileByUserId(userId)) {
-            is Resource.Success -> result.data!!
-            is Resource.Error -> {
-                _snackbarText.emit("An error occurred. Try again later.")
-                return
-            }
-        }
+        val currentUserProfile = getCurrentUserProfile() ?:run { return }
 
-        Log.d("TAG", "${title.value}")
-
-        repository.createBill(
+        val result = repository.createBill(
             userId,
             currentUserProfile,
             title.value,
@@ -89,20 +81,19 @@ class AddEditBillViewModel @Inject constructor(
             _friendsProfiles.value.values.toList(),
         )
 
-        _isDone.emit(true)
-        _snackbarText.emit("Bill saved")
+        when(result) {
+            is Resource.Success -> {
+                _isDone.emit(true)
+                _snackbarText.emit(result.message!!)
+            }
+            is Resource.Error -> _snackbarText.emit(result.message!!)
+        }
     }
 
     private suspend fun updateBill() {
-        val currentUserProfile = when(val result = authRepository.getProfileByUserId(userId)) {
-            is Resource.Success -> result.data!!
-            is Resource.Error -> {
-                _snackbarText.emit("An error occurred. Try again later.")
-                return
-            }
-        }
+        val currentUserProfile = getCurrentUserProfile() ?:run { return }
 
-        repository.updateBill(
+        val result = repository.updateBill(
             billId!!,
             userId,
             currentUserProfile,
@@ -111,7 +102,13 @@ class AddEditBillViewModel @Inject constructor(
             _friendsProfiles.value.values.toList()
         )
 
-        _snackbarText.emit("Bill information updated")
+        when(result) {
+            is Resource.Success -> {
+                _isDone.emit(true)
+                _snackbarText.emit(result.message!!)
+            }
+            is Resource.Error -> _snackbarText.emit(result.message!!)
+        }
     }
 
     fun addFriend(email: String) = viewModelScope.launch {
@@ -125,26 +122,24 @@ class AddEditBillViewModel @Inject constructor(
         }
 
         when(val result = authRepository.getProfileByEmail(email)) {
-            is Resource.Success -> {
-                val profile = result.data!!
-                _friendsProfiles.add(email, profile)
-            }
+            is Resource.Success -> _friendsProfiles.add(email, result.data!!)
             is Resource.Error -> {
                 _snackbarText.emit(result.message!!)
                 return@launch
             }
         }
 
-        if (_friendsProfiles.value.isNotEmpty())
-            _showFriendsTitle.emit(true)
+        isFriendsListEmpty()
     }
 
     private fun addFriend(profile: Profile) = viewModelScope.launch {
         val email = profile.email!!
         _friendsProfiles.add(email, profile)
+        isFriendsListEmpty()
     }
 
-    fun removeFriend(buttonClicked: Button, email: String) = viewModelScope.launch {
+    fun removeFriend(email: String) = viewModelScope.launch {
+        Log.d("TAG", "Remove friend: $isNewBill")
         if (!isNewBill && isUserInvolvedInExpenses(email)) {
             _snackbarText.emit(
                 "This user is involved in at least one expense, so it is not possible to remove it"
@@ -153,18 +148,33 @@ class AddEditBillViewModel @Inject constructor(
         }
 
         _friendsProfiles.remove(email)
+        isFriendsListEmpty()
+    }
 
+    private fun isFriendsListEmpty() = viewModelScope.launch {
         if (_friendsProfiles.value.isEmpty())
             _showFriendsTitle.emit(false)
+        else
+            _showFriendsTitle.emit(true)
     }
 
     private fun isUserInvolvedInExpenses(userEmail: String): Boolean {
         val profile = _friendsProfiles.value[userEmail]!!
-        return repository.isUserInvolvedInExpenses(bill.value, profile.userId!!)
+        return repository.isUserInvolvedInExpenses(bill.value!!, profile.userId!!)
     }
 
     private fun friendAlreadyAdded(email: String): Boolean {
         return _friendsProfiles.value.containsKey(email)
+    }
+
+    private suspend fun getCurrentUserProfile(): Profile? {
+        return when(val result = authRepository.getProfileByUserId(userId)) {
+            is Resource.Success -> result.data!!
+            is Resource.Error -> {
+                _snackbarText.emit("An error occurred. Try again later.")
+                null
+            }
+        }
     }
 
     private fun <K, V> MutableStateFlow<Map<K, V>>.remove(elementKey: K) {
