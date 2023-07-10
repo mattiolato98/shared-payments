@@ -64,12 +64,15 @@ class AddEditBillFragment: Fragment() {
             fieldAddFriend.doOnTextChanged { text, _, _, _ -> fillEmailText(text) }
             buttonAddFriend.setOnClickListener { addFriend() }
         }
+
+        args.billId?.run { viewModel.getBill() }
     }
 
     private fun collectBill() =
         collectLifecycleFlow(viewModel.bill) { bill ->
-            fillBillData(bill)
+            bill?.run { fillBillData(bill) }
     }
+
     private fun collectAddFriend() =
         collectLifecycleFlow(viewModel.friendsProfiles) { profiles ->
             binding.friendsLinearLayout.removeAllViews()
@@ -125,7 +128,7 @@ class AddEditBillFragment: Fragment() {
         binding.buttonAddFriend.text = null
     }
 
-    private fun removeFriend(v: View) = viewModel.removeFriend(v as Button, v.text.toString())
+    private fun removeFriend(v: View) = viewModel.removeFriend((v as Button).text.toString())
 
     private fun fillEmailText(text: CharSequence?) {
         if (text.toString().isNotEmpty()) {
