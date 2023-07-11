@@ -142,6 +142,44 @@ class BillRepository: BaseRepository() {
         }
     }
 
+    fun createExpense(billId: String, expense: Expense): Resource<Unit> {
+        return try {
+            billCollectionRef.document(billId).collection("expenses").add(expense)
+            Resource.Success(Unit, "Expense saved")
+        } catch (e: Exception) {
+            Log.e(tag, e.message.toString())
+            if (e is CancellationException) throw e
+            Resource.Error("An error occurred. Try again later.")
+        }
+    }
+
+    fun updateExpense(billId: String, expenseId: String, expense: Expense): Resource<Unit> {
+        return try {
+            val expenseDocumentRef = billCollectionRef
+                .document(billId)
+                .collection("expenses")
+                .document(expenseId)
+
+            expenseDocumentRef.set(
+                expense.copy(usersPaidForId = mutableMapOf(), usersPaidForUsername = mutableMapOf()),
+                SetOptions.merge()
+            )
+
+            // usersPaidForId and usersPaidForUsername fields updated separately,
+            // since they need to be overwritten rather than merged
+            expenseDocumentRef.update(
+                "usersPaidForId", expense.usersPaidForId,
+                "usersPaidForUsername", expense.usersPaidForUsername
+            )
+
+            Resource.Success(Unit, "Expense information updated")
+        } catch (e: Exception) {
+            Log.e(tag, e.message.toString())
+            if (e is CancellationException) throw e
+            Resource.Error("An error occurred. Try again later.")
+        }
+    }
+
     fun isUserInvolvedInExpenses(bill: Bill, userId: String): Boolean {
         return bill.expenses
             ?.flatMap { it.usersPaidForId?.keys!! + it.userPayingId }
