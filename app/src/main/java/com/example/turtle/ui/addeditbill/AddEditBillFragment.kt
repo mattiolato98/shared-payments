@@ -70,7 +70,7 @@ class AddEditBillFragment: Fragment() {
 
     private fun collectBill() =
         collectLifecycleFlow(viewModel.bill) { bill ->
-            bill.run { fillBillData(bill!!) }
+            fillBillData(bill!!)
     }
 
     private fun collectAddFriend() =
