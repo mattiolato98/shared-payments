@@ -36,6 +36,7 @@ class ExpenseDetailFragment: Fragment() {
     private val binding get() = _binding!!
 
     private val args: ExpenseDetailFragmentArgs by navArgs()
+    private lateinit var expenseTitle: String
     private val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.US)
     private lateinit var balanceAdapter: BalanceAdapter
 
@@ -66,14 +67,17 @@ class ExpenseDetailFragment: Fragment() {
     }
 
     private fun initExpenseDetailFragment() {
+        (activity as AppCompatActivity).supportActionBar?.elevation = 0f
         balanceAdapter = BalanceAdapter()
         binding.usersPaidForList.adapter = balanceAdapter
+        expenseTitle = args.title
     }
 
     private fun collectExpense() = viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.expense.collect { expense ->
                 (activity as AppCompatActivity).supportActionBar?.title = expense.title
+                expenseTitle = expense.title
                 fillExpenseData(expense)
             }
         }
@@ -119,7 +123,7 @@ class ExpenseDetailFragment: Fragment() {
         val action = ExpenseDetailFragmentDirections.navigateToEditExpense(
             args.expenseId,
             args.billId,
-            args.title,
+            expenseTitle,
         )
         findNavController().navigate(action)
     }
@@ -127,7 +131,7 @@ class ExpenseDetailFragment: Fragment() {
     private fun showDeleteDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle("Delete Expense")
-            .setMessage("Are you sure you want to delete ${args.title}? The action is not reversible!")
+            .setMessage("Are you sure you want to delete ${expenseTitle}? The action is not reversible!")
             .setPositiveButton("Delete") { dialog, _ ->
                 deleteExpense()
                 dialog.cancel()
