@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.turtle.ui.addeditbill.AddEditBillViewModel
+import com.example.turtle.ui.addeditexpense.AddEditExpenseViewModel
 import com.example.turtle.ui.billdetail.BillDetailViewModel
 import com.example.turtle.ui.bills.BillsViewModel
 import com.example.turtle.ui.expensedetail.ExpenseDetailViewModel
@@ -38,6 +39,13 @@ class ViewModelFactory(
                         billId,
                         app.userEmail!!
                     ) as T
+                }
+                isAssignableFrom(AddEditExpenseViewModel::class.java) -> {
+                    AddEditExpenseViewModel(
+                        billRepository,
+                        app.userId!!,
+                        billId!!,
+                        expenseId) as T
                 }
                 else -> {
                     throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
