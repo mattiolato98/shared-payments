@@ -38,7 +38,7 @@
                 android:paddingVertical="20dp"
                 android:paddingHorizontal="20dp"
                 android:text="@string/sign_up_with_google"
-                android:backgroundTint="?android:attr/colorBackground"
+                android:backgroundTint="?attr/colorButtonNormal"
                 android:textColor="?attr/textFillColor"
                 android:textStyle="bold"
                 app:icon="@drawable/google_icon_logo"
