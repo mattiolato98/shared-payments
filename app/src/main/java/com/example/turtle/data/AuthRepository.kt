@@ -20,11 +20,11 @@ class AuthRepository: BaseRepository() {
 
     private val auth = Firebase.auth
     private val profileCollectionRef = Firebase.firestore.collection("profiles")
-
+    private var user: FirebaseUser? = null
 
     suspend fun signInWithGoogle(googleCredentials: AuthCredential): AuthResult {
         return try {
-            val user = auth.signInWithCredential(googleCredentials).await().user
+            user = auth.signInWithCredential(googleCredentials).await().user
             if (!userAlreadyExists(user))
                 createProfile(user)
             buildAuthResult(user, null)
@@ -36,7 +36,7 @@ class AuthRepository: BaseRepository() {
 
     suspend fun signInWithEmailAndPassword(email: String, password: String): AuthResult {
         return try {
-            val user = auth.signInWithEmailAndPassword(email, password).await().user
+            user = auth.signInWithEmailAndPassword(email, password).await().user
             buildAuthResult(user)
         } catch (e: FirebaseAuthInvalidCredentialsException) {
             when (e.errorCode) {
@@ -51,7 +51,7 @@ class AuthRepository: BaseRepository() {
 
     suspend fun signUpWithEmailAndPassword(email: String, password: String): AuthResult {
         return try {
-            val user = auth.createUserWithEmailAndPassword(email, password).await().user
+            user = auth.createUserWithEmailAndPassword(email, password).await().user
             createProfile(user)
             buildAuthResult(user)
         } catch (e: FirebaseAuthWeakPasswordException) {
@@ -75,20 +75,7 @@ class AuthRepository: BaseRepository() {
         }
     }
 
-    suspend fun getSignedInUser(): Profile? = auth.currentUser?.run {
-        return@run getSignedInUser(uid)
-    }
-
-    private suspend fun getSignedInUser(userId: String): Profile? {
-        return try {
-            val doc = profileCollectionRef.document(userId).get().await()
-            doc.toObject(Profile::class.java)
-        } catch (e: Exception) {
-            Log.d(tag, e.message.toString())
-            if (e is CancellationException) throw e
-            null
-        }
-    }
+    fun getSignedInUser(): FirebaseUser? = user
 
     suspend fun getProfileByUserId(userId: String) = getProfile("userId", userId)
     suspend fun getProfileByEmail(email: String) = getProfile("email", email)
@@ -101,7 +88,7 @@ class AuthRepository: BaseRepository() {
                 return Resource.Error("No user found with this $fieldName")
             Resource.Success(profileDocs.first().toObject(Profile::class.java))
         } catch (e: Exception) {
-            Log.d(tag, e.message.toString())
+            Log.e(tag, e.message.toString())
             if (e is CancellationException) throw e
             Resource.Error("An error occurred while fetching the data. Try again later")
         }
