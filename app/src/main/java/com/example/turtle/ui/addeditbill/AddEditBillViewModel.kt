@@ -76,6 +76,7 @@ class AddEditBillViewModel @Inject constructor(
             description = description,
             usersId = users.map { it.userId!! },
             users = users,
+            expenses = null,  // Avoids filling the field "expenses" in the Bill, since "expenses" is a sub-collection
         ) ?: Bill(
             userOwnerId = userId,
             title = title,
