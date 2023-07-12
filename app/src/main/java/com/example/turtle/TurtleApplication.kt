@@ -22,11 +22,11 @@ class TurtleApplication: Application() {
         authRepository = AuthRepository()
     }
 
-    fun setUserId(userId: String) {
+    fun setUserId(userId: String?) {
         this.userId = userId
     }
 
-    fun setUserEmail(email: String) {
+    fun setUserEmail(email: String?) {
         this.userEmail = email
     }
 }
