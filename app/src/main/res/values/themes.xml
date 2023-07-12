@@ -72,6 +72,7 @@
 
         <item name="android:windowBackground">@color/white</item>
         <item name="android:colorBackground">@color/white</item>
+        <item name="colorButtonNormal">@color/white</item>
         <item name="colorBackgroundFloating">@color/white_smoke_002</item>
 
         <item name="errorTextColor">@color/bittersweet_002</item>
