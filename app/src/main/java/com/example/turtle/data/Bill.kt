@@ -48,7 +48,7 @@ data class Bill(
         return result.setScale(2, RoundingMode.HALF_UP).toString()
     }
 
-    fun balance(): Map<String, String> {
+    suspend fun balance(): Map<String, String> {
         val balance = mutableMapOf<String, String>()
 
         users!!.forEach { user ->
@@ -59,7 +59,7 @@ data class Bill(
         return balance
     }
 
-    fun refunds(): List<Triple<String, String, String>>? {
+    suspend fun refunds(): List<Triple<String, String, String>>? {
         val balance = balance()
 
         val creditors = balance.mapValues { BigDecimal(it.value) }
