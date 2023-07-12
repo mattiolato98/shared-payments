@@ -19,15 +19,12 @@ class AuthActivity: AppCompatActivity() {
 
     private val auth = Firebase.auth
 
-    private val settingsPreferences = SettingsPreferences(this)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (viewModel.isUserLoggedIn()) {
             auth.currentUser?.run {
                 lifecycleScope.launch {
-                    settingsPreferences.setUserInfo(uid, email!!.split("@")[0], email!!)
                     (application as TurtleApplication).setUserId(uid)
                     (application as TurtleApplication).setUserEmail(email!!)
                     startActivityMain()

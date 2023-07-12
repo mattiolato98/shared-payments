@@ -18,11 +18,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.turtle.MainActivity
+import com.example.turtle.SettingsPreferences
+import com.example.turtle.TurtleApplication
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -42,6 +45,8 @@ abstract class BaseAuthFragment: Fragment() {
     abstract val progressBar: ProgressBar
     abstract val googleButton: Button
 
+    private lateinit var settingsPreferences: SettingsPreferences
+
     val viewModel: AuthViewModel by activityViewModels()
     private lateinit var oneTapSignInLauncher: ActivityResultLauncher<IntentSenderRequest>
     private lateinit var oneTapClient: SignInClient
@@ -49,6 +54,12 @@ abstract class BaseAuthFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        settingsPreferences = SettingsPreferences(requireContext())
+        initBaseAuthFragment()
+        collectState()
+    }
+
+    private fun initBaseAuthFragment() {
         oneTapClient = Identity.getSignInClient(requireActivity())
 
         oneTapSignInLauncher = registerForActivityResult(
@@ -61,17 +72,23 @@ abstract class BaseAuthFragment: Fragment() {
                 viewModel.signInWithGoogle(googleCredentials)
             }
         }
+    }
 
+    private fun collectState() =
         collectLifecycleFlow(viewModel.state) { state ->
             checkState(state)
         }
-    }
 
     private fun checkState(state: AuthState) {
         if (state.isLoading) showProgressBar() else hideProgressBar()
 
         if (state.isUserLoggedIn) {
-            startActivityMain()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getSignedInUser()?.also { user ->
+                    setPreferences(user)
+                    startActivityMain()
+                }
+            }
         } else {
             fieldEmailLayout.error = state.emailError
             fieldPasswordLayout.error = state.passwordError
@@ -84,6 +101,12 @@ abstract class BaseAuthFragment: Fragment() {
                 formErrorMessage.text = null
             }
         }
+    }
+
+    private suspend fun setPreferences(user: FirebaseUser) {
+        settingsPreferences.setUserInfo(user.uid, user.email!!.split("@")[0], user.email!!)
+        (requireActivity().application as TurtleApplication).setUserId(user.uid)
+        (requireActivity().application as TurtleApplication).setUserEmail(user.email)
     }
 
     private fun startActivityMain() {

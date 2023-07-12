@@ -3,8 +3,8 @@ package com.example.turtle.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.turtle.data.AuthRepository
-import com.example.turtle.data.Profile
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -34,7 +34,7 @@ open class AuthViewModel: ViewModel() {
         onAuthResult(result)
     }
 
-    suspend fun getSignedInUserProfile(): Profile? {
+    fun getSignedInUser(): FirebaseUser? {
         return authRepository.getSignedInUser()
     }
 
