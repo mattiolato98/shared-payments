@@ -1,7 +1,5 @@
 package com.example.turtle.ui.auth
 
-import com.example.turtle.data.Profile
-
 
 data class AuthResult(
     val isSuccessful: Boolean,
