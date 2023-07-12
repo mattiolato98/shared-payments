@@ -171,4 +171,8 @@ class AddEditExpenseViewModel @Inject constructor(
     fun getYear() = _calendar.value.get(Calendar.YEAR)
     fun getMonth() = _calendar.value.get(Calendar.MONTH)
     fun getDayOfMonth() = _calendar.value.get(Calendar.DAY_OF_MONTH)
+
+    fun isEditExpense(): Boolean {
+        return expenseId ?.let { true } ?:let { false }
+    }
 }

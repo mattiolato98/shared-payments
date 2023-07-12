@@ -3,12 +3,14 @@ package com.example.turtle.ui.addeditexpense
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.core.util.forEach
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -23,7 +25,12 @@ import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentAddEditExpenseBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -84,7 +91,12 @@ class AddEditExpenseFragment: Fragment() {
     private fun collectBill() = viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
             viewModel.bill.collect { bill ->
-                bill?.run { fillBillData(bill) }
+                Log.d("TAG", "collectbill $bill")
+                bill?.run {
+                    fillBillData(bill)
+                    if (!viewModel.isEditExpense())
+                        setUsersPaidFor(bill, null)
+                }
             }
         }
     }
@@ -110,6 +122,7 @@ class AddEditExpenseFragment: Fragment() {
         }
 
     private fun fillBillData(bill: Bill) {
+        Log.d("TAG", "fillBillData")
         userPayingDataAdapter.addAll(bill.users!!)
         usersPaidForDataAdapter.addAll(bill.users!!)
     }
@@ -126,6 +139,7 @@ class AddEditExpenseFragment: Fragment() {
             viewModel.bill.combine(viewModel.expense) { bill, expense ->
                 Pair(bill, expense)
             }.collect { (bill, expense) ->
+                Log.d("TAG", "collectbillandexpense $bill, $expense")
                 bill?.run {
                     setUsersPaidFor(bill, expense)
                 }
@@ -154,6 +168,7 @@ class AddEditExpenseFragment: Fragment() {
 
     private fun setUsersPaidFor(bill: Bill, expense: Expense?) {
         expense?.run {
+            Log.d("TAG", "setUsersPaidFor ${expense.title}")
             bill.users!!.filter { user ->
                 user.userId in expense.usersPaidForId!!.keys
             }.forEach {
@@ -161,6 +176,7 @@ class AddEditExpenseFragment: Fragment() {
                 binding.usersPaidForList.setItemChecked(position, true)
             }
         } ?:run {
+            Log.d("TAG", "setUsersPaidFor Expense null")
             bill.users!!.indices.forEach {
                 binding.usersPaidForList.setItemChecked(it, true)
             }
