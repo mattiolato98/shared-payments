@@ -186,22 +186,4 @@ class BillRepository: BaseRepository() {
             ?.contains(userId)
             ?: false
     }
-
-    private fun billObject(
-        userOwnerId: String,
-        userOwnerProfile: Profile,
-        title: String,
-        description: String?,
-        users: List<Profile>?,
-    ): Bill {
-        val usersMutable = users?.toMutableList()
-        usersMutable?.add(userOwnerProfile)
-        return Bill(
-            userOwnerId = userOwnerId,
-            title = title,
-            description = description,
-            usersId = usersMutable?.map { it.userId!! },
-            users = usersMutable
-        )
-    }
 }
