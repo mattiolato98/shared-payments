@@ -7,34 +7,39 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.turtle.AuthActivity
 import com.example.turtle.R
 import com.example.turtle.SettingsPreferences
+import com.example.turtle.TurtleApplication
+import com.example.turtle.ViewModelFactory
 import com.example.turtle.data.Profile
 import com.example.turtle.databinding.FragmentProfileBinding
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var oneTapClient: SignInClient
     private val auth = Firebase.auth
-
-    private val profileCollectionRef = Firebase.firestore.collection("profiles")
-    private lateinit var profile: Profile
-
+    private lateinit var oneTapClient: SignInClient
     private lateinit var settingsPreferences: SettingsPreferences
+
+    private val viewModel: ProfileViewModel by viewModels {
+        ViewModelFactory(
+            requireActivity().application,
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,18 +53,27 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         oneTapClient = Identity.getSignInClient(requireActivity())
-
         initProfileFragment()
-
-        binding.signOutButton.setOnClickListener { signOut() }
+        collectProfile()
     }
 
-    private fun initProfileFragment() = viewLifecycleOwner.lifecycleScope.launch {
-        val profileDoc = profileCollectionRef
-            .whereEqualTo("userId", settingsPreferences.getUserId.first()).get().await().first()
-        profile = profileDoc.toObject(Profile::class.java)
+    private fun initProfileFragment() {
+        binding.signOutButton.setOnClickListener { signOut() }
 
+        viewModel.getProfile()
+    }
+
+    private fun collectProfile() = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.profile.collect { profile ->
+                profile?.run { fillProfileData(profile) }
+            }
+        }
+    }
+
+    private fun fillProfileData(profile: Profile) {
         if (profile.profilePictureUrl != null) {
             Picasso.get()
                 .load(profile.profilePictureUrl!!.replace("96", "400").toUri())
@@ -75,6 +89,10 @@ class ProfileFragment : Fragment() {
     private fun signOut() = viewLifecycleOwner.lifecycleScope.launch {
         oneTapClient.signOut()
         auth.signOut()
+
+        settingsPreferences.clearPreferences()
+        (requireActivity().application as TurtleApplication).setUserId(null)
+        (requireActivity().application as TurtleApplication).setUserEmail(null)
 
         startActivityAuth()
     }
