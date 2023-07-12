@@ -8,6 +8,7 @@ import com.example.turtle.ui.addeditexpense.AddEditExpenseViewModel
 import com.example.turtle.ui.billdetail.BillDetailViewModel
 import com.example.turtle.ui.bills.BillsViewModel
 import com.example.turtle.ui.expensedetail.ExpenseDetailViewModel
+import com.example.turtle.ui.profile.ProfileViewModel
 
 class ViewModelFactory(
     private val application: Application? = null,
@@ -46,6 +47,9 @@ class ViewModelFactory(
                         app.userId!!,
                         billId!!,
                         expenseId) as T
+                }
+                isAssignableFrom(ProfileViewModel::class.java) -> {
+                    ProfileViewModel(authRepository, app.userId!!) as T
                 }
                 else -> {
                     throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
