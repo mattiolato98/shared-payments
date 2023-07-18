@@ -1,5 +1,6 @@
 package com.example.turtle.data
 
+import android.util.Log
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 import java.math.BigDecimal
@@ -48,12 +49,16 @@ data class Bill(
         return result.setScale(2, RoundingMode.HALF_UP).toString()
     }
 
+    suspend fun userBalance(userId: String): String {
+        val userBalance = userCreditTotal(userId) - userDebitTotal(userId)
+        return userBalance.setScale(2, RoundingMode.HALF_UP).toString()
+    }
+
     suspend fun balance(): Map<String, String> {
         val balance = mutableMapOf<String, String>()
 
         users!!.forEach { user ->
-            val userBalance = userCreditTotal(user.userId!!) - userDebitTotal(user.userId!!)
-            balance[user.username!!] = userBalance.setScale(2, RoundingMode.HALF_UP).toString()
+            balance[user.username!!] = userBalance(user.userId!!)
         }
 
         return balance
