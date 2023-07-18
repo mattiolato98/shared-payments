@@ -17,6 +17,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.turtle.AlarmScheduler
 import com.example.turtle.MainActivity
 import com.example.turtle.SettingsPreferences
 import com.example.turtle.TurtleApplication
@@ -86,6 +87,7 @@ abstract class BaseAuthFragment: Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.getSignedInUser()?.also { user ->
                     setPreferences(user)
+                    schedulePeriodicNotification()
                     startActivityMain()
                 }
             }
@@ -107,6 +109,12 @@ abstract class BaseAuthFragment: Fragment() {
         settingsPreferences.setUserInfo(user.uid, user.email!!.split("@")[0], user.email!!)
         (requireActivity().application as TurtleApplication).setUserId(user.uid)
         (requireActivity().application as TurtleApplication).setUserEmail(user.email)
+    }
+
+    private fun schedulePeriodicNotification() {
+        val scheduler = AlarmScheduler(requireContext())
+        (requireActivity().application as TurtleApplication).setAlarmScheduler(scheduler)
+        scheduler.schedule()
     }
 
     private fun startActivityMain() {
