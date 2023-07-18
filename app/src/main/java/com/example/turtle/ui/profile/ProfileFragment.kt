@@ -94,6 +94,8 @@ class ProfileFragment : Fragment() {
         (requireActivity().application as TurtleApplication).setUserId(null)
         (requireActivity().application as TurtleApplication).setUserEmail(null)
 
+        cancelPeriodicNotification()
+
         startActivityAuth()
     }
 
@@ -102,6 +104,10 @@ class ProfileFragment : Fragment() {
             startActivity(it)
         }
         requireActivity().finish()
+    }
+
+    private fun cancelPeriodicNotification() {
+        (requireContext().applicationContext as TurtleApplication).alarmScheduler?.cancel()
     }
 
     override fun onDestroyView() {
