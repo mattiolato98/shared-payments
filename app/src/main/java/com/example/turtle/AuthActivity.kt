@@ -2,15 +2,18 @@ package com.example.turtle
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.turtle.data.BillRepository
 import com.example.turtle.databinding.ActivityAuthBinding
 import com.example.turtle.ui.auth.AuthViewModel
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 
 class AuthActivity: AppCompatActivity() {
@@ -25,8 +28,10 @@ class AuthActivity: AppCompatActivity() {
         if (viewModel.isUserLoggedIn()) {
             auth.currentUser?.run {
                 lifecycleScope.launch {
-                    (application as TurtleApplication).setUserId(uid)
-                    (application as TurtleApplication).setUserEmail(email!!)
+                    val app = application as TurtleApplication
+                    app.setUserId(uid)
+                    app.setUserEmail(email!!)
+                    schedulePeriodicNotification()
                     startActivityMain()
                 }
             } ?:run {
@@ -50,5 +55,11 @@ class AuthActivity: AppCompatActivity() {
             startActivity(it)
         }
         finish()
+    }
+
+    private fun schedulePeriodicNotification() {
+        val scheduler = AlarmScheduler(this)
+        (application as TurtleApplication).setAlarmScheduler(scheduler)
+        scheduler.schedule()
     }
 }
