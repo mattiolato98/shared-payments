@@ -9,8 +9,10 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import java.math.BigDecimal
 import javax.inject.Singleton
 
 
@@ -185,5 +187,34 @@ class BillRepository: BaseRepository() {
             ?.flatMap { it.usersPaidForId?.keys!! + it.userPayingId }
             ?.contains(userId)
             ?: false
+    }
+
+    suspend fun getUserDebt(userId: String): Pair<String, Int>? {
+        val billsDoc = billCollectionRef
+            .whereArrayContains("usersId", userId)
+            .get().await()
+        val bills = billsDoc.map { doc ->
+            doc.toObject(Bill::class.java)
+        }
+
+        var result = BigDecimal.ZERO
+
+        val debts = bills.map {
+            val expensesDoc = billCollectionRef.document(it.documentId!!)
+                .collection("expenses").get().await()
+            val expenses = expensesDoc.map { doc ->
+                doc.toObject(Expense::class.java)
+            }
+            it.expenses = expenses
+            it.userBalance(userId)
+        }.map{ BigDecimal(it) }.filter{ it < BigDecimal.ZERO }
+
+        debts.also {
+            result = it.fold(BigDecimal.ZERO, BigDecimal::add)
+        }
+
+        if (result < BigDecimal.ZERO)
+            return Pair(result.toString().split("-")[1], debts.size)
+        return null
     }
 }
